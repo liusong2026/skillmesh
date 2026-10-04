@@ -1,0 +1,2553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SkillMesh · HKU Campus Micro-Loop Demo</title>
+<style>
+:root{--blue:#1F3864;--gold:#D4A017;--red:#C0392B;--green:#1E8449;--gray:#95A5A6;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:"Segoe UI",-apple-system,Arial,sans-serif;background:#EEF1F6;color:#222;display:flex;justify-content:center;min-height:100vh;}
+#shell{width:100%;max-width:460px;background:#F4F6F9;min-height:100vh;display:flex;flex-direction:column;position:relative;box-shadow:0 0 30px rgba(0,0,0,.12);transition:max-width .2s;}
+#shell.admin{max-width:1500px;}
+#topbar{background:var(--blue);color:#fff;padding:10px 16px 12px;display:flex;flex-direction:column;gap:10px;position:sticky;top:0;z-index:30;}
+#topbar .row1{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
+#topbar .row2{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+#topbar .brand{font-size:17px;font-weight:bold;line-height:1.1;}
+#topbar .brand small{display:block;font-size:11px;opacity:.72;font-weight:normal;margin-top:2px;}
+#viewSwitch{display:flex;gap:6px;background:rgba(255,255,255,.15);padding:3px;border-radius:9px;}
+#viewSwitch .vs{padding:6px 14px;border-radius:7px;font-size:12px;cursor:pointer;font-weight:bold;color:#cfd8e6;transition:.15s;}
+#viewSwitch .vs.active{background:#fff;color:var(--blue);}
+#timeBox{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);padding:4px 10px;border-radius:9px;font-size:12px;}
+#timeBox .vt{font-weight:bold;color:var(--gold);}
+#timeBox button{background:var(--gold);color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:bold;cursor:pointer;font-family:inherit;}
+#timeBox button.pause{background:#7F8C8D;}
+#timeBox select{background:#fff;border:none;border-radius:6px;padding:4px 6px;font-size:11px;font-family:inherit;font-weight:bold;color:var(--blue);cursor:pointer;}
+#roleSwitch{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);padding:4px 10px;border-radius:9px;font-size:12px;}
+#roleSwitch select{background:#fff;border:none;border-radius:6px;padding:5px 8px;font-size:12px;font-family:inherit;font-weight:bold;color:var(--blue);cursor:pointer;}
+#roleSwitch .lb{opacity:.85;}
+#userView{display:none;flex:1;flex-direction:column;}
+#userView.active{display:flex;}
+#adminView{display:none;flex:1;flex-direction:column;padding:16px 20px 40px;}
+#adminView.active{display:flex;}
+#userContent{flex:1;overflow-y:auto;padding:14px 16px 90px;}
+#tabbar{position:fixed;bottom:0;width:100%;max-width:460px;background:#fff;border-top:1px solid #E3E8EF;display:flex;z-index:20;}
+#shell.admin #tabbar{display:none;}
+#tabbar .tab{flex:1;padding:10px 0 12px;text-align:center;font-size:11px;color:#8A97A6;cursor:pointer;transition:.15s;}
+#tabbar .tab .ico{display:block;font-size:19px;margin-bottom:2px;}
+#tabbar .tab.active{color:var(--blue);font-weight:bold;}
+.card{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);padding:14px;margin-bottom:12px;}
+.card h2{font-size:14px;color:var(--blue);margin-bottom:10px;}
+.filter-tabs{display:flex;gap:8px;margin-bottom:10px;}
+.filter-tabs .ft{padding:6px 14px;border-radius:16px;background:#fff;font-size:12px;cursor:pointer;color:#7A8798;border:1px solid #E3E8EF;}
+.filter-tabs .ft.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+.task-tabs{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px;}
+.task-tabs .tt{padding:7px 14px;border-radius:16px;background:#fff;font-size:12px;cursor:pointer;color:#7A8798;border:1px solid #E3E8EF;white-space:nowrap;transition:.15s;font-weight:bold;}
+.task-tabs .tt.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+.task-tabs .tt .cnt{display:inline-block;background:rgba(0,0,0,.08);color:inherit;font-size:10px;padding:0 6px;border-radius:8px;margin-left:4px;}
+.task-tabs .tt.active .cnt{background:rgba(255,255,255,.25);}
+.task-card{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);padding:12px 14px;margin-bottom:10px;border-left:4px solid var(--gray);position:relative;}
+.task-card.urgent{border-left-color:var(--red);}
+.task-card.normal{border-left-color:var(--green);}
+.task-card.relaxed{border-left-color:#2E5496;}
+.task-card .kind-badge{display:inline-block;font-size:10px;padding:1px 7px;border-radius:8px;margin-right:6px;vertical-align:middle;font-weight:normal;}
+.task-card .kind-badge.need{background:#EAF1FB;color:#2E5496;}
+.task-card .kind-badge.offer{background:#FBF3DC;color:#8A6A0F;}
+.task-card .kind-badge.squad{background:#E8F8EE;color:#1E8449;}
+.task-card .title{font-size:14.5px;font-weight:bold;margin-bottom:5px;padding-right:44px;line-height:1.4;}
+.task-card .meta{font-size:12px;color:#7A8798;line-height:1.6;}
+.task-card .row{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:6px;flex-wrap:wrap;}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:bold;padding:2px 9px;border-radius:10px;color:#fff;}
+.chip.urgent{background:var(--red);}
+.chip.normal{background:var(--green);}
+.chip.relaxed{background:#2E5496;}
+.tag-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+.skill-tag{display:inline-block;background:#EAF1FB;color:#2E5496;font-size:11px;padding:2px 9px;border-radius:10px;font-weight:bold;}
+.scene-tag{display:inline-block;background:#F5F0FF;color:#6C3CB5;font-size:11px;padding:2px 9px;border-radius:10px;}
+.time-tag{display:inline-block;background:#FFF4E5;color:#B7472A;font-size:11px;padding:2px 9px;border-radius:10px;}
+.risk-tag{display:inline-block;background:#FFECEC;color:var(--red);font-size:11px;padding:2px 9px;border-radius:10px;font-weight:bold;}
+.report-btn{position:absolute;top:10px;right:10px;background:#F5F7FA;border:none;border-radius:6px;width:26px;height:26px;font-size:13px;cursor:pointer;color:#95A5A6;line-height:1;}
+.report-btn:hover{background:#FFECEC;color:var(--red);}
+.name-link{color:var(--blue);font-weight:bold;cursor:pointer;text-decoration:underline dotted;}
+.name-link:hover{color:var(--gold);}
+.tag{display:inline-block;padding:2px 9px;border-radius:10px;font-size:11px;color:#fff;}
+.tag.urgent{background:var(--red);}.tag.normal{background:var(--green);}.tag.relaxed{background:#2E5496;}
+.tag.positive{background:var(--green);}.tag.neutral{background:#7F8C8D;}.tag.negative{background:var(--red);}
+.tag.gray{background:#BDC3C7;}.tag.protected{background:var(--gold);}.tag.protect-warn{background:#E67E22;}
+.tag.top{background:var(--gold);}.tag.bottom{background:#95A5A6;}.tag.expired{background:#95A5A6;}
+.tag.in-progress{background:#2E5496;}.tag.pending{background:var(--gold);}.tag.rate{background:#8E44AD;}
+.tag.done{background:var(--green);}.tag.open{background:var(--gold);}.tag.closed{background:#8E44AD;}
+.tag.selected{background:var(--green);}.tag.rejected{background:#95A5A6;}.tag.awaiting{background:#BDC3C7;}
+.tag.accepted{background:#2E5496;}.tag.taken-down{background:var(--red);}.tag.pending-review{background:#E67E22;}
+.tag.suspicious{background:#E67E22;}.tag.low-cred{background:#8E44AD;}.tag.squad{background:var(--green);}
+.btn{border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-family:inherit;font-weight:bold;cursor:pointer;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn-primary{background:#2E5496;color:#fff;}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-purple{background:#8E44AD;color:#fff;}
+.btn-green{background:var(--green);color:#fff;}
+.btn-red{background:var(--red);color:#fff;}
+.btn-gray{background:#95A5A6;color:#fff;}
+.btn-sm{padding:6px 12px;font-size:12px;}
+.btn-block{display:block;width:100%;padding:13px;font-size:15px;}
+label{display:block;font-size:13px;color:#555;margin:12px 0 6px;font-weight:bold;}
+input,select,textarea{width:100%;padding:11px 12px;border:1px solid #D5DCE6;border-radius:9px;font-size:14px;font-family:inherit;background:#fff;}
+textarea{resize:vertical;min-height:80px;}
+.seg{display:flex;gap:8px;margin-top:4px;}
+.seg .opt{flex:1;text-align:center;padding:10px 0;border-radius:9px;border:1.5px solid #D5DCE6;font-size:13px;cursor:pointer;background:#fff;font-weight:bold;color:#666;transition:.15s;}
+.seg .opt.sel{color:#fff;}
+.seg .opt.sel.need{background:var(--blue);border-color:var(--blue);}
+.seg .opt.sel.offer{background:var(--gold);border-color:var(--gold);}
+.hint{font-size:11px;color:#98A4B3;line-height:1.6;margin-top:6px;}
+.warn{font-size:11px;color:var(--red);line-height:1.6;margin-top:6px;}
+.empty{text-align:center;color:#AAB4C0;font-size:13px;padding:40px 0;}
+.info-box{background:#F0F7FF;border-left:3px solid #2E5496;border-radius:8px;padding:10px 12px;font-size:12px;color:#2E5496;line-height:1.7;margin-top:10px;}
+.compliance-box{background:#FFF8E7;border-left:3px solid var(--gold);border-radius:8px;padding:10px 12px;font-size:12px;color:#8A6A0F;line-height:1.7;margin-top:10px;}
+.deadline-input{display:flex;gap:8px;align-items:center;margin-top:4px;}
+.deadline-input input[type="number"]{flex:2;padding:11px 12px;}
+.deadline-input select{flex:2;padding:11px 8px;}
+.deadline-preview{font-size:12px;color:var(--blue);background:#F0F7FF;border-radius:8px;padding:8px 12px;margin-top:8px;line-height:1.7;}
+.deadline-preview b{color:var(--gold);}
+.tag-preview-box{background:#F8F9FB;border-radius:8px;padding:10px 12px;margin-top:8px;font-size:12px;}
+.tag-preview-box .tp-title{font-size:11px;color:#98A4B3;margin-bottom:6px;font-weight:bold;}
+.tag-preview-box .tp-empty{color:#AAB4C0;font-size:11px;}
+.tpl-tabs{display:flex;gap:6px;margin:8px 0;}
+.tpl-tabs .tt{padding:5px 12px;border-radius:14px;background:#fff;font-size:11px;cursor:pointer;color:#7A8798;border:1px solid #E3E8EF;font-weight:bold;}
+.tpl-tabs .tt.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+.tpl-list{display:flex;flex-direction:column;gap:6px;margin-top:8px;max-height:220px;overflow-y:auto;}
+.tpl-item{border:1px solid #E3E8EF;border-radius:8px;padding:9px 12px;font-size:12px;cursor:pointer;transition:.15s;background:#FBFCFE;}
+.tpl-item:hover{border-color:var(--blue);background:#F0F7FF;}
+.tpl-item.sel{border-color:var(--gold);background:#FFF8E7;box-shadow:0 2px 8px rgba(212,160,23,.15);}
+.tpl-item .tpl-c{font-weight:bold;color:var(--blue);margin-bottom:3px;}
+.tpl-item .tpl-m{font-size:11px;color:#8A97A6;}
+#toast{position:fixed;bottom:78px;left:50%;transform:translateX(-50%);background:rgba(31,56,100,.95);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:99;max-width:88%;text-align:center;}
+#toast.show{opacity:1;}
+#splash{position:fixed;inset:0;background:linear-gradient(160deg,#1F3864 0%,#2E5496 60%,#3A66B0 100%);z-index:200;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#fff;transition:opacity .6s;}
+#splash.hide{opacity:0;pointer-events:none;}
+#splash .logo{font-size:44px;font-weight:bold;letter-spacing:3px;opacity:0;transform:translateY(20px);animation:splashIn 1s .1s forwards;}
+#splash .line{width:60px;height:3px;background:var(--gold);margin:16px 0;transform:scaleX(0);animation:lineIn .8s .7s forwards;}
+#splash .tagline{font-size:13px;opacity:0;letter-spacing:2px;animation:splashIn 1s 1.1s forwards;}
+#splash .sub{font-size:11px;opacity:0;margin-top:14px;color:#cfd8e6;animation:splashIn 1s 1.5s forwards;}
+@keyframes splashIn{to{opacity:1;transform:translateY(0);}}
+@keyframes lineIn{to{transform:scaleX(1);}}
+#loginMask{position:fixed;inset:0;background:linear-gradient(160deg,#1F3864,#2E5496);display:flex;align-items:center;justify-content:center;z-index:100;padding:24px;}
+#loginMask .box{background:#fff;border-radius:16px;padding:28px 22px;width:100%;max-width:340px;text-align:center;}
+#loginMask h2{color:var(--blue);font-size:20px;margin-bottom:6px;}
+#loginMask p{font-size:12px;color:#8A97A6;margin-bottom:18px;line-height:1.6;}
+#loginMask select{margin-bottom:14px;text-align:center;font-weight:bold;color:var(--blue);}
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-start;justify-content:center;z-index:110;padding:6vh 16px 24px;overflow-y:auto;}
+.modal-mask.show{display:flex;}
+.modal{background:#fff;border-radius:14px;padding:20px;width:100%;max-width:380px;max-height:80vh;overflow-y:auto;}
+.modal h3{color:var(--blue);font-size:16px;margin-bottom:14px;}
+.modal .row{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;}
+.rate-row{display:flex;gap:10px;margin-top:4px;}
+.rate-row .opt{flex:1;text-align:center;padding:11px 0;border-radius:10px;border:1.5px solid #D5DCE6;font-size:13px;cursor:pointer;font-weight:bold;background:#fff;}
+.rate-row .opt.sel.positive{background:var(--green);color:#fff;border-color:var(--green);}
+.rate-row .opt.sel.neutral{background:#7F8C8D;color:#fff;border-color:#7F8C8D;}
+.rate-row .opt.sel.negative{background:var(--red);color:#fff;border-color:var(--red);}
+.stars{display:flex;gap:6px;margin-top:4px;}
+.stars .star{font-size:26px;color:#D5DCE6;cursor:pointer;transition:.15s;line-height:1;}
+.stars .star.active{color:var(--gold);}
+.yesno{display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;}
+.yesno .opt{flex:1;min-width:60px;text-align:center;padding:10px;border-radius:9px;border:1.5px solid #D5DCE6;font-size:13px;cursor:pointer;background:#fff;font-weight:bold;color:#666;}
+.yesno .opt.sel.yes{background:var(--green);color:#fff;border-color:var(--green);}
+.yesno .opt.sel.no{background:var(--red);color:#fff;border-color:var(--red);}
+.yesno .opt.sel.gold{background:var(--gold);color:#fff;border-color:var(--gold);}
+.yesno .opt.sel.gray{background:#95A5A6;color:#fff;border-color:#95A5A6;}
+.profile-head{background:linear-gradient(150deg,#1F3864,#2E5496);color:#fff;border-radius:14px;padding:22px 18px;text-align:center;margin-bottom:14px;position:relative;}
+.profile-head .avatar{width:64px;height:64px;border-radius:50%;background:var(--gold);color:#fff;font-size:26px;font-weight:bold;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;}
+.profile-head .name{font-size:18px;font-weight:bold;}
+.profile-head .badge{display:inline-block;background:var(--gold);color:#fff;font-size:11px;padding:2px 10px;border-radius:10px;margin-top:6px;}
+.profile-head .protect{display:inline-block;background:rgba(255,255,255,.25);color:#fff;font-size:11px;padding:2px 10px;border-radius:10px;margin-top:6px;margin-left:4px;}
+.profile-head .rank{display:inline-block;background:rgba(255,255,255,.2);color:#fff;font-size:11px;padding:3px 10px;border-radius:10px;margin-top:8px;}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;}
+.stat-grid .st{background:rgba(255,255,255,.15);border-radius:10px;padding:10px 4px;}
+.stat-grid .st .num{font-size:18px;font-weight:bold;color:var(--gold);}
+.stat-grid .st .lb{font-size:11px;opacity:.85;margin-top:2px;}
+.list-item{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #EFF2F6;font-size:13px;}
+.list-item:last-child{border-bottom:none;}
+.list-item .l{flex:1;}
+.list-item .l .t{font-weight:bold;line-height:1.6;}
+.list-item .l .s{font-size:11px;color:#8A97A6;margin-top:2px;}
+.admin-grid{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;}
+.admin-left{flex:1.4;min-width:460px;display:flex;flex-direction:column;gap:12px;}
+.admin-right{flex:1;min-width:420px;display:flex;flex-direction:column;gap:12px;}
+.panel{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:16px;}
+.panel h2{font-size:15px;color:var(--blue);border-bottom:2px solid #E8EDF4;padding-bottom:6px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px;}
+#log{font-size:12.5px;line-height:1.7;height:200px;overflow-y:auto;background:#F8F9FB;border-radius:6px;padding:10px;}
+#log .good{color:var(--green);} #log .bad{color:var(--red);} #log .gold{color:var(--gold);font-weight:bold;} #log .sys{color:var(--blue);font-weight:bold;}
+#aiInsights{font-size:12.5px;line-height:1.6;max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;}
+#aiInsights .ai{display:flex;gap:8px;padding:8px 10px 8px 10px;background:#F8F9FB;border-left:3px solid var(--blue);border-radius:6px;}
+#aiInsights .ai.gold{border-left-color:var(--gold);background:#FFF8E7;}
+#aiInsights .ai.red{border-left-color:var(--red);background:#FFF7F7;}
+#aiInsights .ai.green{border-left-color:var(--green);background:#F3FBF6;}
+#aiInsights .ai .ico{font-size:14px;line-height:1.4;}
+#dataPanel{font-size:12px;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{background:var(--blue);color:#fff;padding:6px 8px;text-align:left;}
+td{padding:5px 8px;border-bottom:1px solid #EDF0F4;}
+.pos{color:var(--green);font-weight:bold;} .neg{color:var(--red);font-weight:bold;}
+.scroll{max-height:320px;overflow-y:auto;}
+#banner{font-size:12px;color:#555;padding:8px 0;}
+.btnDel{background:#E74C3C;color:#fff;padding:3px 9px;font-size:11px;border-radius:5px;font-weight:normal;border:none;cursor:pointer;}
+.btnDel:disabled{background:#BDC3C7;cursor:not-allowed;}
+.rank-hist{display:flex;flex-direction:column;gap:4px;background:#FBFCFE;border-radius:8px;padding:8px 10px;}
+.rank-row-item{display:grid;grid-template-columns:32px 1.4fr 70px 70px 70px 78px;gap:8px;align-items:center;padding:8px 10px;border-radius:8px;font-size:12px;background:#fff;border:1px solid #EEF1F6;transition:.15s;}
+.rank-row-item.top1{background:linear-gradient(90deg,#FFF8E7,#FBF3DC);border-color:#D4A017;}
+.rank-row-item.top2{background:linear-gradient(90deg,#F5F7FA,#FBFCFE);border-color:#BDC3C7;}
+.rank-row-item.top3{background:linear-gradient(90deg,#FBF3DC,#FFF8E7);border-color:#E0C080;}
+.rank-row-item .rk{font-weight:bold;color:#1F3864;font-size:13px;}
+.rank-row-item.top1 .rk{color:#D4A017;}
+.rank-row-item .nm{font-weight:bold;color:#1F3864;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rank-row-item .cell{text-align:right;}
+.rank-row-item .cell .v{font-family:monospace;font-size:12px;color:#555;}
+.rank-row-item .cell .mini{height:4px;background:#EFF2F6;border-radius:2px;overflow:hidden;margin-top:3px;}
+.rank-row-item .cell .mini > div{height:100%;background:#2E5496;border-radius:2px;transition:width .4s;}
+.rank-row-item .cell.mini-star .mini > div{background:#D4A017;}
+.rank-row-item .cell.mini-act .mini > div{background:#1E8449;}
+.rank-row-item .tot{text-align:right;color:#D4A017;font-family:monospace;font-weight:bold;font-size:13px;}
+.rank-hist .header-row{display:grid;grid-template-columns:32px 1.4fr 70px 70px 70px 78px;gap:8px;padding:4px 10px;font-size:10px;color:#98A4B3;font-weight:bold;letter-spacing:.3px;}
+.rank-legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:#7A8798;margin-top:8px;padding:8px 12px;background:#F8F9FB;border-radius:6px;line-height:1.7;}
+.rank-legend .r{color:#2E5496;font-weight:bold;}
+.rank-legend .s{color:#D4A017;font-weight:bold;}
+.rank-legend .a{color:#1E8449;font-weight:bold;}
+@media (max-width:900px){
+  .rank-row-item{grid-template-columns:32px 1fr 80px;}
+  .rank-row-item .cell{display:none;}
+  .rank-hist .header-row{grid-template-columns:32px 1fr 80px;}
+  .rank-hist .header-row span:nth-child(3),
+  .rank-hist .header-row span:nth-child(4),
+  .rank-hist .header-row span:nth-child(5){display:none;}
+}
+.pcard-head{display:flex;gap:12px;align-items:center;margin-bottom:14px;}
+.pcard-head .av{width:52px;height:52px;border-radius:50%;background:var(--blue);color:#fff;font-size:22px;font-weight:bold;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pcard-head .nm{font-size:16px;font-weight:bold;color:var(--blue);}
+.pcard-head .bd{background:var(--gold);color:#fff;font-size:10px;padding:1px 7px;border-radius:8px;margin-left:6px;font-weight:normal;vertical-align:middle;}
+.pcard-head .protect{background:#E67E22;color:#fff;font-size:10px;padding:1px 7px;border-radius:8px;margin-left:4px;font-weight:normal;vertical-align:middle;}
+.pcard-sec{margin-bottom:12px;}
+.pcard-sec .lbl{font-size:11px;color:#98A4B3;margin-bottom:6px;font-weight:bold;letter-spacing:.5px;}
+.pcard-sec .rows .item{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px dashed #F0F3F7;}
+.pcard-sec .rows .item:last-child{border-bottom:none;}
+.pcard-sec .rows .item b{color:var(--blue);}
+.pcard-tags{display:flex;gap:6px;flex-wrap:wrap;}
+.pcard-tags .tg{background:#EAF1FB;color:#2E5496;font-size:11px;padding:3px 10px;border-radius:10px;}
+.pcard-locked{background:#F8F9FB;border-radius:8px;padding:12px;font-size:12px;color:#98A4B3;text-align:center;line-height:1.7;}
+.pcard-review{font-size:12px;color:#555;padding:5px 0;border-bottom:1px dashed #F0F3F7;}
+.pcard-review:last-child{border-bottom:none;}
+.pcard-review .rt{color:var(--gold);font-weight:bold;}
+.scene-head{background:linear-gradient(135deg,#1F3864,#2E5496);color:#fff;border-radius:10px;padding:14px 16px;margin-bottom:14px;}
+.scene-head .t{font-size:13px;opacity:.85;letter-spacing:1px;}
+.scene-head .m{font-size:16px;font-weight:bold;margin-top:4px;}
+.step-block{margin-top:14px;}
+.step-block .sb-title{font-size:12px;color:#98A4B3;margin-bottom:8px;font-weight:bold;}
+.cand-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+.cand{background:#EAF1FB;color:#2E5496;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:bold;transition:.3s;}
+.cand.win{background:var(--gold);color:#fff;transform:scale(1.08);box-shadow:0 4px 14px rgba(212,160,23,.5);}
+.cand.lose{background:#F0F2F6;color:#AAB4C0;}
+.score-card{border:1px solid #EFF2F6;border-radius:10px;padding:10px 12px;margin-bottom:8px;background:#FBFCFE;transition:.4s;}
+.score-card.active{background:#fff;border-color:var(--gold);box-shadow:0 2px 10px rgba(212,160,23,.18);}
+.score-card .nm{font-size:14px;font-weight:bold;color:var(--blue);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;}
+.score-card .ln{font-size:12px;color:#555;line-height:1.8;display:flex;justify-content:space-between;}
+.score-card .ln b{color:var(--blue);}
+.score-card .total{margin-top:6px;padding-top:6px;border-top:1px dashed #EFF2F6;font-size:13px;text-align:right;color:var(--gold);font-weight:bold;}
+.rank-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;margin-bottom:6px;transition:.4s;font-size:13px;}
+.rank-row.r5,.rank-row.r4,.rank-row.r3,.rank-row.r2{background:#F5F7FA;color:#555;}
+.rank-row.r1{background:linear-gradient(135deg,#FFF8E7,#FBF3DC);border:1.5px solid var(--gold);font-weight:bold;color:#8A6A0F;}
+.rank-row.win{background:linear-gradient(135deg,#E8F8EE,#D6F0E0);border:1.5px solid var(--green);font-weight:bold;color:#1E8449;}
+.rank-row .rank{width:44px;font-weight:bold;color:var(--blue);}
+.rank-row.r1 .rank{color:var(--gold);}
+.rank-row.win .rank{color:var(--green);}
+.rank-row .sc{margin-left:auto;font-family:monospace;font-size:13px;}
+.noti-card{background:#FFF8E7;border-left:4px solid var(--gold);border-radius:8px;padding:10px 12px;font-size:12.5px;color:#8A6A0F;line-height:1.7;margin-bottom:8px;}
+.review-row{border:1px solid #F0D7D7;background:#FFF7F7;border-radius:10px;padding:12px;margin-bottom:10px;}
+.review-row .rv-head{font-size:13px;font-weight:bold;color:var(--red);margin-bottom:6px;}
+.review-row .rv-body{font-size:12px;color:#555;line-height:1.7;}
+.review-row .rv-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.cred-bar{display:flex;align-items:center;gap:8px;margin-top:4px;}
+.cred-bar .bar{flex:1;height:6px;background:#EFF2F6;border-radius:3px;overflow:hidden;}
+.cred-bar .bar > div{height:100%;background:var(--green);}
+.cred-bar .bar.warn > div{background:var(--gold);}
+.cred-bar .bar.bad > div{background:var(--red);}
+.cred-bar .num{font-size:11px;color:#7A8798;font-family:monospace;}
+.dp-wrap{display:flex;flex-direction:column;gap:12px;}
+.dp-live{font-size:11.5px;color:var(--blue);background:#F0F7FF;border-left:3px solid var(--blue);border-radius:6px;padding:7px 10px;font-family:monospace;letter-spacing:.2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dp-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+.dp-kpi{background:#F8F9FB;border:1px solid #EFF2F6;border-radius:9px;padding:9px 8px;text-align:center;transition:.25s;}
+.dp-kpi.pulse{background:#FFF8E7;border-color:var(--gold);transform:scale(1.04);box-shadow:0 3px 12px rgba(212,160,23,.25);}
+.dp-kv{font-size:17px;font-weight:bold;color:var(--blue);font-family:monospace;line-height:1.2;}
+.dp-kpi.pulse .dp-kv{color:var(--gold);}
+.dp-kl{font-size:10px;color:#8A97A6;margin-top:3px;line-height:1.3;}
+.dp-kd{font-size:9.5px;color:#AAB4C0;margin-top:2px;font-family:monospace;}
+.dp-block{background:#FBFCFE;border:1px solid #EFF2F6;border-radius:9px;padding:10px 12px;}
+.dp-block-t{font-size:11.5px;color:#7A8798;font-weight:bold;margin-bottom:8px;}
+.dp-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+@media (max-width:1400px){ .dp-kpis{grid-template-columns:repeat(3,1fr);} }
+@media (max-width:1100px){ .dp-grid3{grid-template-columns:1fr;} }
+.dp-spark{display:flex;align-items:flex-end;gap:4px;height:56px;padding:0 2px;}
+.dp-spark i{flex:1;background:linear-gradient(180deg,#2E5496,#1F3864);border-radius:3px 3px 0 0;min-height:3px;transition:height .4s, background .3s;}
+.dp-spark i:last-child{background:linear-gradient(180deg,var(--gold),#B8860B);box-shadow:0 0 8px rgba(212,160,23,.5);}
+#dpIdle .bar,#dpSkills .bar,#dpBridges .bar{height:6px;background:#EFF2F6;border-radius:3px;overflow:hidden;margin:2px 0 6px;}
+#dpIdle .bar > div,#dpSkills .bar > div,#dpBridges .bar > div{height:100%;background:var(--blue);border-radius:3px;transition:width .5s;}
+#dpIdle .row,#dpSkills .row,#dpBridges .row{display:flex;justify-content:space-between;font-size:11.5px;padding:2px 0;}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="logo">SkillMesh</div>
+  <div class="line"></div>
+  <div class="tagline">Small favors, transparent reputation</div>
+  <div class="sub">HKU Campus · Reputation Loop Demo</div>
+</div>
+
+<div id="shell">
+  <header id="topbar">
+    <div class="row1">
+      <div class="brand">SkillMesh<small>HKU campus reputation mutual-aid demo</small></div>
+      <div id="viewSwitch">
+        <div class="vs active" data-v="user">User</div>
+        <div class="vs" data-v="admin">Admin</div>
+      </div>
+    </div>
+    <div class="row2">
+      <div id="timeBox">
+        <span>⏱️ Day <span class="vt" id="virtualTime">0</span></span>
+        <select id="timeRatio">
+          <option value="3600">1s = 1 hour</option>
+          <option value="86400" selected>1s = 1 day</option>
+          <option value="604800">1s = 1 week</option>
+        </select>
+        <button id="btnTimeToggle">▶️ Start</button>
+      </div>
+      <div id="roleSwitch">
+        <span class="lb">Role</span>
+        <select id="roleSelect"></select>
+      </div>
+    </div>
+  </header>
+
+  <div id="userView" class="active">
+    <div id="userContent"></div>
+    <nav id="tabbar">
+      <div class="tab active" data-tab="plaza"><span class="ico">🏫</span>Plaza</div>
+      <div class="tab" data-tab="publish"><span class="ico">➕</span>Post</div>
+      <div class="tab" data-tab="tasks"><span class="ico">📋</span>Tasks</div>
+      <div class="tab" data-tab="profile"><span class="ico">👤</span>Me</div>
+    </nav>
+  </div>
+
+  <!-- ================= ADMIN VIEW ================= -->
+  <div id="adminView">
+    <div class="admin-grid">
+      <!-- ========== LEFT COLUMN ========== -->
+      <div class="admin-left">
+        <div class="panel">
+          <h2>Community Top 15 Leaderboard</h2>
+          <div class="rank-hist" id="rankHist"></div>
+          <div id="banner" style="margin-top:8px;">Tip: turn on Time Mode to let the community run, or use manual controls. Ranks update live with each exchange.</div>
+          <div class="controls">
+            <button class="btn btn-primary" id="btnRandomTrade">Simulate a trade</button>
+            <button class="btn btn-purple" id="btnAutoTask">🤖 Auto-generate task</button>
+            <button class="btn btn-primary" id="btnAddRole">➕ Add role</button>
+            <button class="btn btn-purple" id="btnBatchAdd">➕➕ Batch add</button>
+            <button class="btn btn-gray" id="btnReset">Reset data</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>⚖️ Report review queue <span class="hint" style="margin:0;font-weight:normal;" id="reportCount">0 pending</span></h2>
+          <div id="reportQueue"></div>
+        </div>
+
+        <div class="panel"><h2>🤖 AI insights</h2><div id="aiInsights"></div></div>
+
+        <!-- ★★★ System log 现在在左栏最下方 ★★★ -->
+        <div class="panel"><h2>System log</h2><div id="log"></div></div>
+      </div>
+
+      <!-- ========== RIGHT COLUMN ========== -->
+      <div class="admin-right">
+        <div class="panel">
+          <h2>Member ledger</h2>
+          <div class="scroll"><table id="ledgerTbl">
+            <thead><tr><th>Member</th><th>Balance</th><th>Reliability</th><th>Stars</th><th>Activity</th><th>Credibility</th><th>Rank</th><th>Action</th></tr></thead>
+            <tbody></tbody>
+          </table></div>
+        </div>
+
+        <div class="panel"><h2>Recent transactions</h2>
+          <div class="scroll"><table id="txTbl">
+            <thead><tr><th>Provider</th><th>Receiver</th><th>Content</th><th>Urgency</th><th>Rating</th><th>Stars</th><th>Weight</th><th>Points</th></tr></thead>
+            <tbody></tbody>
+          </table></div>
+        </div>
+
+        <div class="panel"><h2>📊 Data assets (B-side value)</h2><div id="dataPanel"></div></div>
+
+        <div class="panel">
+          <h2>🏷️ Tag detection dictionary</h2>
+          <div class="hint">When posting, the system auto-detects skill, scene, time, and risk tags based on the dictionary below.</div>
+          <div class="dict-grid" id="dictPanel" style="margin-top:12px;display:grid;grid-template-columns:repeat(2,1fr);gap:14px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ================= /ADMIN VIEW ================= -->
+</div>
+
+<div id="toast"></div>
+
+<div id="loginMask">
+  <div class="box">
+    <h2>SkillMesh</h2>
+    <p>HKU campus mutual aid · transparent reputation<br>Pick a role to enter (demo, switch anytime)</p>
+    <select id="loginRole"></select>
+    <button class="btn btn-primary btn-block" id="btnLogin">Enter</button>
+    <div class="hint" style="margin-top:12px;">Demo environment. Data lives only on this page; refresh to reset.</div>
+  </div>
+</div>
+
+<div class="modal-mask" id="acceptMask"><div class="modal"><h3>Confirm acceptance</h3><div id="acceptInfo" style="font-size:13px;line-height:1.8;color:#444;"></div><div class="hint">Please finish soon after accepting. When done, both sides confirm completion, then the receiver rates the helper.</div><div class="row"><button class="btn btn-gray" id="btnCancelAccept">Cancel</button><button class="btn btn-green" id="btnConfirmAccept">Confirm</button></div></div></div>
+
+<div class="modal-mask" id="reportMask"><div class="modal"><h3>Report this content</h3><div id="reportInfo" style="font-size:13px;line-height:1.8;color:#444;margin-bottom:12px;"></div><label>Reason</label><div class="yesno" id="reportReason"><div class="opt no sel" data-r="Illegal content">Illegal content</div><div class="opt no" data-r="Harassment">Harassment</div><div class="opt no" data-r="Misinformation">Misinformation</div><div class="opt no" data-r="Other">Other</div></div><label>Additional note (optional)</label><input id="reportComment" type="text" placeholder="One-line note" maxlength="40"><div class="hint">The content will be hidden from the plaza immediately and sent to the admin review queue.</div><div class="row"><button class="btn btn-gray" id="btnCancelReport">Cancel</button><button class="btn btn-red" id="btnConfirmReport">Submit report</button></div></div></div>
+
+<div class="modal-mask" id="rateMask"><div class="modal"><h3>Rate this exchange</h3><div id="rateInfo" style="font-size:13px;line-height:1.8;color:#444;"></div><label>Overall rating</label><div class="rate-row" id="rateRow"><div class="opt positive" data-r="positive">Positive</div><div class="opt neutral" data-r="neutral">Neutral</div><div class="opt negative" data-r="negative">Negative</div></div><label>Quality score (1–5 stars)</label><div class="stars" id="starRow"><span class="star" data-s="1">★</span><span class="star" data-s="2">★</span><span class="star" data-s="3">★</span><span class="star" data-s="4">★</span><span class="star" data-s="5">★</span></div><label>Would you work with them again?</label><div class="yesno" id="wouldRow"><div class="opt yes" data-w="yes">Yes</div><div class="opt no" data-w="no">No</div></div><label>Additional comment (optional)</label><input id="rateComment" type="text" placeholder="One-line feedback" maxlength="40"><div id="ratePreview" class="hint" style="margin-top:10px;"></div><div class="row"><button class="btn btn-gray" id="btnCancelRate">Cancel</button><button class="btn btn-primary" id="btnConfirmRate" disabled>Submit</button></div></div></div>
+
+<div class="modal-mask" id="profileCardMask"><div class="modal"><div id="profileCardBody"></div><div class="row"><button class="btn btn-gray" id="btnCloseProfileCard">Close</button></div></div></div>
+
+<div class="modal-mask" id="scarcePublishMask"><div class="modal"><h3>Post a scarce resource</h3><div class="info-box" style="margin-top:0;">💡 The platform <b>does not pick for you</b>. After sign-up closes, the platform shows every applicant's public reputation data, and <b>you (the poster) decide</b> who to pick.</div><label>Template (optional)</label><div class="tpl-tabs" id="uspTplTabs"><div class="tt active" data-t="none">No template</div><div class="tt" data-t="squad">Squad / partner</div><div class="tt" data-t="general">General</div></div><div class="tpl-list" id="uspTplList" style="display:none;"></div><label>Title</label><input id="uspTitle" type="text" placeholder="e.g. Weekend photography volunteer" maxlength="60"><label>Slots</label><input id="uspQuota" type="number" value="1" min="1" max="20" step="1"><label>Sign-up window (free-form)</label><div class="deadline-input"><input id="uspDeadlineNum" type="number" value="1" min="1" max="9999" step="1"><select id="uspDeadlineUnit"><option value="hour">hours</option><option value="day" selected>days</option></select></div><div class="deadline-preview" id="uspDeadlinePreview"></div><label>Description (optional)</label><textarea id="uspDesc" placeholder="Briefly describe this resource" maxlength="120"></textarea><div class="tag-preview-box" id="uspTagPreview"><div class="tp-title">Auto-detected tags</div><div class="tp-empty">Enter a title or description to see detected tags</div></div><div class="compliance-box">⚖️ <b>Compliance commitment</b>: posting means you confirm this resource is real and legal, contains no illegal content, involves no paid transactions, ghostwriting or exam-taking, and no privacy requests. Violating content will be taken down, and posters may be restricted.</div><label style="display:flex;align-items:center;gap:8px;font-weight:normal;margin-top:10px;"><input type="checkbox" id="uspAgree" style="width:auto;"><span style="font-size:13px;">I have read and agree to the compliance commitment above</span></label><div class="row"><button class="btn btn-gray" id="btnCancelUsp">Cancel</button><button class="btn btn-gold" id="btnConfirmUsp" disabled>Post</button></div></div></div>
+
+<div class="modal-mask" id="dataPanelMask"><div class="modal" style="max-width:560px;"><div class="scene-head"><div class="t">Reputation data panel · for your reference</div><div class="m" id="dpTitle">🏆 Result</div></div><div class="info-box" style="margin-top:0;">⚖️ The platform <b>does not decide for you</b>. The following is every applicant's public reputation data; please judge for yourself.</div><div class="step-block"><div class="sb-title">STEP 1 · Applicants</div><div class="cand-row" id="dpCands"></div></div><div class="step-block"><div class="sb-title">STEP 2 · Score breakdown</div><div id="dpScores"></div></div><div class="step-block"><div class="sb-title">STEP 3 · Reference ranking</div><div id="dpRanks"></div></div><div class="step-block" id="dpPickBlock"><div class="sb-title">STEP 4 · Your choice</div><div id="dpPick"></div></div><div class="step-block" id="dpResultBlock" style="display:none;"><div class="sb-title">STEP 5 · Notifications sent</div><div id="dpNotis"></div></div><div class="row"><button class="btn btn-gray" id="btnDpClose">Close</button></div></div></div>
+
+<div class="modal-mask" id="autoTaskMask"><div class="modal" style="max-width:480px;"><h3>🤖 Auto-generate task</h3><div class="info-box" style="margin-top:0;">Generate one task for a chosen member. Normal tasks come from the vetted templates; squad tasks go through the scarce-resource channel.</div><label>Assign to</label><select id="autoTaskOwner"></select><label>Type</label><div class="tpl-tabs" id="autoTaskType"><div class="tt active" data-t="normal">Normal task</div><div class="tt" data-t="squad">Squad / partner (scarce)</div></div><label>Choose a template</label><div class="tpl-list" id="autoTaskTplList"></div><label id="autoTaskQuotaLabel" style="display:none;">How many people?</label><input id="autoTaskQuota" type="number" value="1" min="1" max="20" step="1" style="display:none;"><div class="hint" id="autoTaskQuotaHint" style="display:none;">This sets how many people the poster is looking for.</div><label>Duration (free-form)</label><div class="deadline-input"><input id="autoTaskNum" type="number" value="1" min="1" max="9999" step="1"><select id="autoTaskUnit"><option value="hour">hours</option><option value="day" selected>days</option></select></div><div class="deadline-preview" id="autoTaskPreview"></div><div class="row"><button class="btn btn-gray" id="btnCancelAutoTask">Cancel</button><button class="btn btn-gold" id="btnConfirmAutoTask">Generate</button></div></div></div>
+
+<div class="modal-mask" id="addRoleMask"><div class="modal"><h3>Add role</h3><label>Name</label><input id="newRoleName" type="text" placeholder="e.g. Frank" maxlength="20"><label>Newcomer protection period</label><div class="yesno" id="newRoleProtect"><div class="opt gold sel" data-d="30">30 days</div><div class="opt gold" data-d="7">7 days</div><div class="opt gold" data-d="90">90 days</div><div class="opt gray" data-d="0">None</div></div><div class="hint">Protection shows a 🛡️ tag only, and does not add credit.</div><div class="row"><button class="btn btn-gray" id="btnCancelAddRole">Cancel</button><button class="btn btn-primary" id="btnConfirmAddRole">Confirm</button></div></div></div>
+
+<div class="modal-mask" id="batchAddMask"><div class="modal"><h3>Batch add members</h3><label>Mode</label><div class="yesno" id="batchMode"><div class="opt gold sel" data-m="community">Simulated community</div><div class="opt gold" data-m="newbie">Newcomers</div></div><div class="hint" id="batchModeHint">Simulated community: each member is scattered across rank bands to widen the community.</div><label>Count (1–1000)</label><input id="batchCount" type="number" value="50" min="1" max="1000" step="10"><div id="batchCommunityOpts"><div class="hint">Target score = community median × random factor.</div></div><div id="batchNewbieOpts" style="display:none;"><label>Newcomer protection period</label><div class="yesno" id="batchProtect"><div class="opt gray sel" data-d="0">None</div><div class="opt gold" data-d="7">7 days</div><div class="opt gold" data-d="30">30 days</div><div class="opt gold" data-d="90">90 days</div></div></div><div class="row"><button class="btn btn-gray" id="btnCancelBatchAdd">Cancel</button><button class="btn btn-primary" id="btnConfirmBatchAdd">Confirm</button></div></div></div>
+
+<script>
+/* ============================================================
+   SkillMesh · Reputation-ranking version
+   ============================================================ */
+const RATING_FACTOR = { 'positive': 1.2, 'neutral': 1.0, 'negative': 0.5 };
+const REL_DELTA     = { 'positive': +0.03, 'neutral': +0.01, 'negative': -0.05 };
+const REL_RECEIVE_GOOD = +0.01;
+const REL_MIN = 0.05, REL_MAX = 1.0;
+const DAY_MS = 24 * 3600 * 1000;
+const HOUR_MS = 3600 * 1000;
+const RANK_W = { rel: 0.40, star: 0.40, activity: 0.20 };
+const ACTIVITY_WINDOW_DAYS = 30;
+const ACTIVITY_TARGET = 20;
+const BALANCE_CAP = 100;
+const DECAY_PERIOD_DAYS = 60;
+const DECAY_THRESHOLD = 50;
+const DECAY_RATE = 0.10;
+const STAR_RECENT_WEIGHT = 0.6;
+const SUSPICION_THRESHOLD = 0.5;
+const CREDIBILITY_COLD_START = 0.7;
+
+const BLOCK_P0 = {
+  'ghostwriting': ['ghostwrite','ghostwriting','write my essay','do my homework','take my exam','take my test','sit my exam','do my assignment'],
+  'money': ['payment','pay me','paid','cash','transfer','deposit','salary','wage','hourly rate','monthly fee','long-term hire','hire','commission','stake','ID deposit'],
+  'contact info': ['wechat','whatsapp','telegram','qq','phone number','mobile','email me','scan qr','dm me','add me'],
+  'privacy': ['ID card','passport','student card','home address','dorm number','bank card','password','verification code'],
+  'illegal': ['drugs','marijuana','gun','ammo','gambling','betting','porn','nude','prostitution','smuggling','money laundering','fraud','pyramid scheme'],
+};
+const BLOCK_P1 = {
+  'gray leads': ['do it for me','take it for me','sit it for me','guaranteed pass','sure pass','guaranteed to pass'],
+  'commercial': ['promotion','advertisement','agent','franchise','recruit agents','side income','brushing','fake reviews','boost my rating','vote boost'],
+  'illegal trade': ['cash out','pay for me','advance','lend me money','loan','installment'],
+};
+const BLOCK_P2 = {
+  'AI phrases': ['core','firstly','secondly','moreover','notably','in summary','in conclusion','it is self-evident','as we all know','it is worth noting'],
+  'AI meta-info': ['AI-generated','generated by AI','AI assistant','auto-generated by AI','written by AI'],
+};
+function getAllBlockWords(){
+  const all = [];
+  Object.values(BLOCK_P0).forEach(arr => arr.forEach(w => all.push({ word: w, level: 'P0' })));
+  Object.values(BLOCK_P1).forEach(arr => arr.forEach(w => all.push({ word: w, level: 'P1' })));
+  Object.values(BLOCK_P2).forEach(arr => arr.forEach(w => all.push({ word: w, level: 'P2' })));
+  return all;
+}
+function scanBlockWords(text){
+  const hits = { P0: [], P1: [], P2: [] };
+  const seen = new Set();
+  getAllBlockWords().forEach(({ word, level }) => {
+    if (text.includes(word) && !seen.has(word)){ seen.add(word); hits[level].push(word); }
+  });
+  [{ re: /not .*? but/, level: 'P2', name: 'not X but Y' },{ re: /rather than/, level: 'P2', name: 'rather than' }]
+    .forEach(p => { if (p.re.test(text)) hits[p.level].push(p.name); });
+  return hits;
+}
+
+const SKILL_DICT = {
+  'Errand':        ['pick up','bring food','bring something','errand','collect for me','fetch','pickup','drop off'],
+  'Seat-saving':   ['save a seat','hold a seat','reserve a seat','save me a seat'],
+  'Tech repair':   ['fix laptop','blue screen','reinstall','system reinstall','broken laptop','freeze','clean dust','repair'],
+  'Tutoring':      ['tutoring','explain','coaching','error','code','coding','python','java','c++','homework help','explain problem','extra class','stata','pandas','latex','excel','vlookup','regression'],
+  'Borrowing':     ['borrow','lend','borrow a','lend me','use briefly'],
+  'Photography':   ['photo','photography','ID photo','retouch','photoshop','picture'],
+  'Bring item':    ['bring a','bring one','bring some','drop by','bring a cup','bring one portion'],
+  'Buying':        ['buy for me','buy on my behalf','buy a','get me some'],
+  'Printing':      ['print','copy','scan','print shop','copy shop'],
+  'Sports':        ['play ball','find a partner','run','workout','badminton','basketball','tennis'],
+  'Translation':   ['translate','english','chinese','translate this','polish'],
+  'PPT':           ['ppt','make a ppt','slide deck','presentation','deck'],
+  'Photo edit':    ['retouch','photoshop','beautify','cutout'],
+  'Companion':     ['chat','talk','vent','company'],
+  'Directions':    ['directions','route','navigate','how to get there'],
+  'Resume':        ['cv','resume','edit cv','polish resume'],
+  'Interview':     ['interview','group interview','interview process','interview experience','case interview','mock interview'],
+  'Squad':         ['squad','team up','teammate','partner','together','find teammate','find partner'],
+  'Business comp': ['business comp','competition','contest','hackathon'],
+  'Revision':      ['revise','review notes','past paper','past papers','previous years'],
+};
+const SCENE_DICT = {
+  'Library':   ['library','Chi Wah','Main Lib','book library'],
+  'Canteen':   ['canteen','dining hall','restaurant','eat','get food'],
+  'Dorm':      ['dorm','hall','downstairs','residence'],
+  'Academics': ['homework','class','exam','paper','revise','study','course','lecture','econ','fina','math','stat','business comp','hackathon','team'],
+  'Sports':    ['ball','court','run','gym','sports','swim'],
+  'Career':    ['cv','resume','interview','group interview','Big Four','investment banking','career','CFA','linkedin','internship'],
+  'Other':     [],
+};
+const TIME_DICT = {
+  'today':     ['today','tonight'],'tomorrow':  ['tomorrow','tomorrow morning','tomorrow night'],
+  'day after': ['day after tomorrow'],'this week': ['this week','within the week'],'next week': ['next week','next week'],
+  'morning':   ['morning','early morning'],'noon':      ['noon','midday'],'afternoon': ['afternoon','afternoon'],'evening':   ['evening','tonight','night','dusk'],
+};
+function extractClockTime(text){
+  const m = text.match(/(morning|noon|afternoon|evening|night)?\s*(\d{1,2})\s*[:.]\s*(\d{0,2})?/);
+  if (!m) return null;
+  return `${m[1]||''}${m[2]} o'clock${m[3] ? ' ' + m[3] + ' min' : ''}`;
+}
+function extractSkillTags(text){
+  const lower = text.toLowerCase();
+  const tags = [];
+  for (const [skill, kws] of Object.entries(SKILL_DICT)){
+    if (kws.some(k => lower.includes(k.toLowerCase()))) tags.push(skill);
+    if (tags.length >= 3) break;
+  }
+  return tags;
+}
+function extractSceneTag(text, fallbackScene){
+  const lower = text.toLowerCase();
+  for (const [scene, kws] of Object.entries(SCENE_DICT)){
+    if (kws.some(k => lower.includes(k.toLowerCase()))) return scene;
+  }
+  return fallbackScene || 'Other';
+}
+function extractTimeTags(text){
+  const tags = [];
+  for (const [label, kws] of Object.entries(TIME_DICT)){
+    if (kws.some(k => text.includes(k))) tags.push(label);
+    if (tags.length >= 2) break;
+  }
+  const clock = extractClockTime(text);
+  if (clock && !tags.includes(clock)) tags.push(clock);
+  return tags.slice(0, 2);
+}
+function extractRiskTags(text){
+  const hits = scanBlockWords(text);
+  const risks = [];
+  if (hits.P0.length) risks.push('P0');
+  if (hits.P1.length) risks.push('P1');
+  if (hits.P2.length) risks.push('P2');
+  return risks;
+}
+function extractTags(text, fallbackScene){
+  return { skills: extractSkillTags(text), scene: extractSceneTag(text, fallbackScene), times: extractTimeTags(text), risks: extractRiskTags(text) };
+}
+function renderTagRow(tags){
+  if (!tags) return '';
+  const parts = [];
+  (tags.skills || []).forEach(s => parts.push(`<span class="skill-tag">${s}</span>`));
+  if (tags.scene && tags.scene !== 'Other') parts.push(`<span class="scene-tag">${tags.scene}</span>`);
+  (tags.times || []).forEach(t => parts.push(`<span class="time-tag">${t}</span>`));
+  if (parts.length <= 2) return '';
+  return `<div class="tag-row">${parts.join('')}</div>`;
+}
+
+const TASK_TEMPLATES_NORMAL = [
+  { content:'Anyone has ECON1210 past papers to share?',  scene:'Academics',   hours:24 },
+  { content:'Anyone want to revise FINA2320 together? Want to compare notes.',  scene:'Academics',   hours:24*7 },
+  { content:'Who can run a Stata regression? Help me find the error.',      scene:'Academics',   hours:2 },
+  { content:'Need help editing my CV, IB track.',                    scene:'Career',   hours:24*3 },
+  { content:'Anyone interviewed at Big Four? Want to know the group interview process.',            scene:'Career',   hours:24*7 },
+  { content:'Anyone want to practise case interviews together?',      scene:'Career',   hours:24*7 },
+  { content:'Who knows Python pandas? Help me process some data.',      scene:'Academics',   hours:24*7 },
+  { content:'Need help with LaTeX formatting, paper template is a pain.',      scene:'Academics',   hours:24 },
+  { content:'Anyone has advanced Excel formula notes? Want to learn.',        scene:'Academics',   hours:24*7 },
+  { content:'Need a guide to HKU Library databases.',            scene:'Library', hours:24*7 },
+];
+const TASK_TEMPLATES_SQUAD = [
+  { content:'Anyone want to team up for a business comp? Need someone good at PPT.', quota:1, hours:24*7, scene:'Academics' },
+  { content:'Anyone want to team up for a hackathon? Need a front-end dev.', quota:1, hours:24*7, scene:'Academics' },
+  { content:'Anyone want to do a group project together? Need two more.', quota:2, hours:24*7, scene:'Academics' },
+  { content:'Anyone wants to sign up for CFA Level I? Looking for a partner.',       quota:3, hours:24*14, scene:'Career' },
+  { content:'Looking for a Cantonese practice partner, want to practise speaking.',            quota:1, hours:24*14, scene:'Other' },
+  { content:'Anyone wants to sign up for volunteer activities together? Need teammates.',      quota:2, hours:24*7, scene:'Other' },
+  { content:'Anyone want to practise case interviews together this week?',  quota:2, hours:24*5, scene:'Career' },
+];
+
+const NAME_POOL = ['Alice','Bob','Cindy','David','Evan','Fiona','Grace','Henry','Ivy','Jack','Kevin','Lily','Mike','Nina','Oscar','Penny','Quinn','Ryan','Sophia','Tom','Uma','Victor','Wendy','Xavier','Yara','Zoe','Aaron','Bella','Chloe','Dylan','Ella','Felix','Gina','Hugo','Iris','Jason','Kelly','Leo','Mia','Noah','Olive','Peter','Queenie','Rachel','Sam','Tina','Ulysses','Vera','Will','Xena','Yvonne','Zach','Amber','Bruce','Cathy','Daniel','Elena','Frank','Gloria','Harry','Isabella','James','Karen','Lucas','Mandy','Nathan','Olivia','Patrick','Quentin','Rose','Steven','Tracy','Ursula','Vincent','Winnie','Xander','Yolanda','Zane','Annie','Ben','Cara','Derek','Emma','Fred','Gigi','Helen','Ivan','Joyce','Kira','Liam','Mona','Neil','Opal','Paul','Rita','Sean','Tara','Umar','Violet','Wade','Yuki','Zara','Aiden','Bianca','Colin','Diana','Ethan','Freya','Gavin','Hazel','Ian','Jade','Kyle','Luna','Miles','Nora','Owen','Piper','Reid','Sage'];
+
+const state = {
+  currentUser: null, view: 'user', userTab: 'plaza', taskTab: 'helpOthers', plazaFilter: 'all',
+  members: [], txs: [], notifications: {}, scarcePools: [], reports: [], lastDecayDay: 0,
+  pendingAcceptId: null, pendingRateTask: null, pendingRateValue: null, pendingRateStars: 5, pendingRateWould: true,
+  pendingReportId: null, pendingReportReason: 'Illegal content',
+  uspTplTab: 'none', uspTplSel: -1, autoTaskType: 'normal', autoTaskTplSel: -1,
+  time: { enabled:false, virtualNow:0, ratio:86400, lastTickReal:null, lastAutoDay:0, timer:null },
+};
+
+function makeMember(name, rel=0.85, protectDays=30){
+  const now = state.time.virtualNow;
+  const protection = protectDays > 0
+    ? { active: true, expiresAt: now + protectDays * DAY_MS, durationDays: protectDays }
+    : { active: false, expiresAt: 0, durationDays: 0 };
+  return { name, rel, bal: 0, protection, helpCount:0, receiveCount:0, goodCount:0, midCount:0, badCount:0, totalRated:0, starSum:0, starCount:0, wouldAgainYes:0, wouldAgainTotal:0, published:[], accepted:[], history:[], bio:'HKU student, happy to help~', skills:['Errand','Borrow notes'], seedAlign:false, _credibility:null, _credStats:null };
+}
+
+function statusFromDeadline(deadlineAt){
+  const leftDays = (deadlineAt - state.time.virtualNow) / DAY_MS;
+  if (leftDays <= 1) return 'urgent';
+  if (leftDays <= 7) return 'normal';
+  return 'relaxed';
+}
+function deadlineFromInput(num, unit){
+  const n = Math.max(1, parseInt(num, 10) || 1);
+  return state.time.virtualNow + (unit === 'hour' ? n * HOUR_MS : n * DAY_MS);
+}
+function formatDeadlinePreview(num, unit){
+  const n = Math.max(1, parseInt(num, 10) || 1);
+  const deadlineAt = deadlineFromInput(n, unit);
+  const label = unit === 'hour' ? `${n} hour(s)` : `${n} day(s)`;
+  const dl = leftLabelFromTs(deadlineAt);
+  const status = urgencyLabel(statusFromDeadline(deadlineAt));
+  return `Will close after <b>${label}</b> (Day ${Math.floor(deadlineAt/DAY_MS)} · ${dl}) · auto-classified as <b>${status}</b>`;
+}
+function urgencyLabel(s){ return { urgent: 'Urgent', normal: 'Normal', relaxed: 'Relaxed' }[s] || s; }
+function leftLabelFromTs(ts){
+  const leftMs = ts - state.time.virtualNow;
+  if (leftMs <= 0) return 'expired';
+  const leftHours = leftMs / HOUR_MS;
+  if (leftHours <= 1) return `${Math.ceil(leftMs/60000)} min left`;
+  if (leftHours <= 24) return `${Math.ceil(leftHours)} h left`;
+  return `${Math.ceil(leftHours/24)} d left`;
+}
+function urgencyChip(status, dl){
+  const cls = status || 'normal';
+  const label = urgencyLabel(status);
+  const dlText = dl && dl !== 'expired' ? ` · ${dl}` : (dl === 'expired' ? ' · expired' : '');
+  return `<span class="chip ${cls}">${label}${dlText}</span>`;
+}
+
+function seedHistoryForMember(m){
+  const pGood = Math.max(0.10, Math.min(0.90, m.rel - 0.05));
+  const pMid = 0.10;
+  const totalHistory = 5 + Math.floor(Math.random() * 20);
+  const targetRecent = Math.floor(Math.random() * 19);
+  const recentCount = Math.min(targetRecent, totalHistory);
+  const targetStarAvg = 1.5 + Math.random() * 3.5;
+  for (let i = 0; i < totalHistory; i++){
+    let vDay = i < recentCount ? -Math.floor(Math.random() * 30) : -30 - Math.floor(Math.random() * 60);
+    const r = Math.random();
+    let rating = r < pGood ? 'positive' : (r < pGood + pMid ? 'neutral' : 'negative');
+    let stars = Math.max(1, Math.min(5, Math.round(targetStarAvg + (Math.random() - 0.5) * 2)));
+    let receiver = m;
+    if (state.members.length > 1){
+      let guard = 0;
+      while (receiver === m && guard < 50){ receiver = state.members[Math.floor(Math.random() * state.members.length)]; guard++; }
+      if (receiver === m){ const idx = state.members.indexOf(m); receiver = state.members[(idx + 1) % state.members.length]; }
+    }
+    state.txs.push({ from:m.name, to:receiver.name, label:'Past exchange', status:'normal', rating, amount:1, base:1, stars, wouldAgain:rating!=='negative', kind:'need', vDay, comment:'', ts:vDay*DAY_MS, suspicion:0, effectiveWeight:0.85+Math.random()*0.15 });
+    if (rating === 'positive') m.goodCount++; else if (rating === 'neutral') m.midCount++; else m.badCount++;
+    m.totalRated++; m.starSum += stars; m.starCount++; m.helpCount++; m.wouldAgainTotal++;
+    if (rating !== 'negative') m.wouldAgainYes++;
+  }
+}
+
+function initSeed(){
+  const seedMembers = [makeMember('Alice',0.90,0),makeMember('Bob',0.88,0),makeMember('Cindy',0.72,0),makeMember('David',0.95,0),makeMember('Evan',0.60,0)];
+  state.members = seedMembers;
+  const need = 100 - state.members.length;
+  if (need > 0){
+    generateNames(need).forEach(name=>{
+      const rel = 0.30 + Math.random() * 0.62;
+      state.members.push(makeMember(name, rel, 0));
+    });
+  }
+  state.members.forEach(m => seedHistoryForMember(m));
+  const now = state.time.virtualNow;
+  const seedTasks = [
+    { owner:'Bob', kind:'need', content:'Stata regression error, help me find the bug', scene:'Academics', createdAt:'3 min ago', hours:2 },
+    { owner:'Cindy', kind:'need', content:'Help edit my CV, IB track', scene:'Career', createdAt:'30 min ago', hours:24*3 },
+    { owner:'David', kind:'need', content:'pandas data processing, teach me', scene:'Academics', createdAt:'1 h ago', hours:24*7 },
+    { owner:'David', kind:'offer', content:'Can help take ID photos this weekend', scene:'Other', createdAt:'2 h ago', hours:24*7 },
+    { owner:'Evan', kind:'need', content:'Lend me a charging cable, downstairs', scene:'Dorm', createdAt:'20 min ago', hours:24 },
+    { owner:'Alice', kind:'offer', content:'I can help debug Python errors', scene:'Academics', createdAt:'1 h ago', hours:24*7 },
+    { owner:'Alice', kind:'need', content:'Help me pick up a package at Chi Wah', scene:'Other', createdAt:'30 min ago', hours:24 },
+    { owner:'David', kind:'need', content:'Borrow a calculator on Wednesday afternoon', scene:'Academics', createdAt:'4 h ago', hours:24*7 },
+    { owner:'Bob', kind:'offer', content:'Can help fix basic computer issues', scene:'Other', createdAt:'5 h ago', hours:24*7 },
+  ];
+  seedTasks.forEach((t, i)=>{
+    const m = state.members.find(x=>x.name===t.owner);
+    if (m){
+      const deadlineAt = now + t.hours * HOUR_MS;
+      const tags = extractTags(t.content + ' ' + t.scene, t.scene);
+      m.published.push({ id:'S'+(i+1), owner:t.owner, kind:t.kind, content:t.content, status:statusFromDeadline(deadlineAt), scene:t.scene, createdAt:t.createdAt, pubState:'awaiting', deadlineLabel:formatDeadlineLabel(t.hours), deadlineHours:t.hours, deadlineAt, tags });
+    }
+  });
+}
+function formatDeadlineLabel(hours){
+  if (hours < 24) return `within ${hours} h`;
+  const d = Math.round(hours / 24);
+  return d === 1 ? 'same day' : `within ${d} d`;
+}
+
+const clamp = (v,lo,hi)=>Math.min(hi,Math.max(lo,v));
+const round1 = v=>+v.toFixed(1);
+const round2 = v=>+v.toFixed(2);
+const round3 = v=>+v.toFixed(3);
+const $ = s=>document.querySelector(s);
+const $$ = s=>document.querySelectorAll(s);
+function toast(msg){
+  const t = $('#toast'); if (!t) return;
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._tm); t._tm = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+function me(){ return state.members.find(m=>m.name===state.currentUser); }
+function findMember(name){ return state.members.find(m=>m.name===name); }
+function netContribution(m){ return m.helpCount - m.receiveCount; }
+function relBadge(rel){
+  if (rel >= 0.9) return 'Gold helper';
+  if (rel >= 0.75) return 'Reliable member';
+  if (rel >= 0.6) return 'Regular member';
+  return 'Needs work';
+}
+
+function computeSuspicion(tx){
+  let score = 0; const reasons = [];
+  if (tx.rating === 'negative' && (!tx.comment || tx.comment.trim().length === 0)){ score += 0.4; reasons.push('Negative rating without explanation'); }
+  if (tx.rating === 'negative' && tx.comment){
+    const positiveWords = ['good','nice','satisfied','recommend','thanks','timely','careful','professional'];
+    if (positiveWords.some(w => tx.comment.includes(w))){ score += 0.5; reasons.push('Text contradicts rating'); }
+  }
+  const oneDayAgo = tx.ts - DAY_MS;
+  const recentBad = state.txs.filter(t => t.to === tx.to && t.rating === 'negative' && t.ts >= oneDayAgo).length;
+  if (recentBad >= 3){ score += 0.3; reasons.push(`${recentBad} negative ratings within 1 day`); }
+  const revenge = state.txs.some(t => t.from === tx.to && t.to === tx.from && t.rating === 'negative' && Math.abs(t.ts - tx.ts) < 2 * DAY_MS);
+  if (revenge){ score += 0.3; reasons.push('Possible retaliatory rating'); }
+  return { score: clamp(score, 0, 1), reasons };
+}
+function computeRaterCredibility(name){
+  const m = findMember(name);
+  if (!m) return { score: CREDIBILITY_COLD_START, stats: null, reasons: [] };
+  const given = state.txs.filter(t => t.from === name);
+  const n = given.length;
+  if (n < 3) return { score: CREDIBILITY_COLD_START, stats: { n }, reasons: ['Not enough samples, using neutral value'] };
+  const reasons = [];
+  const stars = given.map(t => t.stars || 3);
+  const mean = stars.reduce((a,b)=>a+b,0) / n;
+  const variance = stars.reduce((a,b)=>a+(b-mean)**2,0) / n;
+  const stdDev = Math.sqrt(variance);
+  const extremeCount = stars.filter(s => s === 1 || s === 5).length;
+  const extremeRate = extremeCount / n;
+  const allStars = state.txs.map(t => t.stars || 3);
+  const communityMean = allStars.length ? allStars.reduce((a,b)=>a+b,0) / allStars.length : 3;
+  const deviation = Math.abs(mean - communityMean);
+  const badTargets = {};
+  given.filter(t => t.rating === 'negative').forEach(t => { badTargets[t.to] = (badTargets[t.to] || 0) + 1; });
+  const maxBadToSame = Math.max(0, ...Object.values(badTargets));
+  let score = 1.0;
+  if (stdDev < 0.3){ score -= 0.2; reasons.push('Almost no variance in ratings'); }
+  if (extremeRate > 0.9){ score -= 0.2; reasons.push('Almost only extreme ratings'); }
+  if (deviation > 1.5){ score -= 0.15; reasons.push('Large deviation from community mean'); }
+  if (maxBadToSame >= 3){ score -= 0.3; reasons.push('Repeated negative ratings to same person'); }
+  score = clamp(score, 0.2, 1.0);
+  return { score, stats: { n, mean: round2(mean), stdDev: round2(stdDev), extremeRate: round2(extremeRate), deviation: round2(deviation), maxBadToSame }, reasons };
+}
+function getCredibility(name){
+  const m = findMember(name);
+  if (!m) return CREDIBILITY_COLD_START;
+  if (m._credibility === null){ const r = computeRaterCredibility(name); m._credibility = r.score; m._credStats = r.stats; }
+  return m._credibility;
+}
+function getCredStats(name){
+  const m = findMember(name);
+  if (!m) return null;
+  if (m._credibility === null) getCredibility(name);
+  return m._credStats;
+}
+function invalidateCredibility(name){ const m = findMember(name); if (m){ m._credibility = null; m._credStats = null; } }
+function computeEffectiveWeight(tx, provider, receiver){
+  const suspicion = computeSuspicion(tx);
+  const raterName = receiver ? receiver.name : null;
+  const raterCred = raterName ? getCredibility(raterName) : CREDIBILITY_COLD_START;
+  return { suspicion: round2(suspicion.score), suspicionReasons: suspicion.reasons, credibility: round2(raterCred), weight: clamp(round2((1 - suspicion.score) * raterCred), 0.1, 1.0) };
+}
+
+function relScoreOf(m){
+  const received = state.txs.filter(t => t.from === m.name);
+  if (!received.length) return m.rel;
+  let goodW = 0, midW = 0, totalW = 0;
+  received.forEach(t => {
+    const w = t.effectiveWeight !== undefined ? t.effectiveWeight : 1;
+    totalW += w;
+    if (t.rating === 'positive') goodW += w; else if (t.rating === 'neutral') midW += w;
+  });
+  if (totalW === 0) return m.rel;
+  return clamp((goodW + 0.5 * midW) / totalW, 0, 1);
+}
+function starScoreOf(m){
+  const received = state.txs.filter(t => t.from === m.name && t.stars);
+  if (!received.length) return 0.5;
+  const toScore = (stars) => clamp((stars - 1) / 4, 0, 1);
+  const recent = received.slice(-3);
+  const recentAvgStars = recent.reduce((a,b) => a + (b.stars || 3), 0) / recent.length;
+  const recentScore = toScore(recentAvgStars);
+  let weightedSum = 0, weightSum = 0;
+  received.forEach(t => {
+    const w = t.effectiveWeight !== undefined ? t.effectiveWeight : 1;
+    weightedSum += (t.stars || 3) * w; weightSum += w;
+  });
+  const historyAvgStars = weightSum > 0 ? weightedSum / weightSum : recentAvgStars;
+  const historyScore = toScore(historyAvgStars);
+  const sampleFactor = Math.min(1, received.length / 3);
+  const recentWeight = (STAR_RECENT_WEIGHT - 0.2) + 0.2 * sampleFactor;
+  const historyWeight = 1 - recentWeight;
+  return clamp(recentScore * recentWeight + historyScore * historyWeight, 0, 1);
+}
+function activityScoreOf(m){
+  const today = virtualDay();
+  const fromDay = today - ACTIVITY_WINDOW_DAYS;
+  const recentHelp = state.txs.filter(t => t.from === m.name && t.vDay >= fromDay).length;
+  return clamp(recentHelp / ACTIVITY_TARGET, 0, 1);
+}
+function totalScoreOf(m){ return RANK_W.rel * relScoreOf(m) + RANK_W.star * starScoreOf(m) + RANK_W.activity * activityScoreOf(m); }
+function percentileOf(m){
+  const list = state.members;
+  if (list.length <= 1) return 100;
+  const my = totalScoreOf(m);
+  const below = list.filter(x => x !== m && totalScoreOf(x) < my).length;
+  return (below / (list.length - 1)) * 100;
+}
+function rankLabelOf(m){
+  const p = percentileOf(m);
+  if (p >= 50){ return { text: `Top ${Math.max(1, Math.round(100 - p))}%`, cls: 'top', pct: p }; }
+  return { text: 'Bottom 50%', cls: 'bottom', pct: p };
+}
+
+function checkProtectionExpiry(){
+  const now = state.time.virtualNow;
+  const expired = [];
+  state.members.forEach(m=>{
+    if (m.protection.active && now >= m.protection.expiresAt){
+      m.protection.active = false; expired.push(m.name);
+      pushNotification(m.name, '🛡️ Protection period has ended');
+    }
+  });
+  if (expired.length) logAdmin(`[Protection] ${expired.length} member(s) protection expired.`, 'sys');
+}
+function protectionLeftDays(m){
+  if (!m.protection.active) return 0;
+  return Math.max(0, Math.ceil((m.protection.expiresAt - state.time.virtualNow) / DAY_MS));
+}
+function applyBalanceCap(m){
+  if (m.bal > BALANCE_CAP){
+    const overflow = round1(m.bal - BALANCE_CAP);
+    m.bal = BALANCE_CAP;
+    logAdmin(`[Cap] ${m.name}'s balance exceeded ${BALANCE_CAP}; ${overflow} points recycled.`, 'gold');
+    pushNotification(m.name, `💰 Balance cap: ${overflow} points above ${BALANCE_CAP} recycled`);
+  }
+}
+function runDecay(){
+  const today = virtualDay();
+  if (today - state.lastDecayDay < DECAY_PERIOD_DAYS) return;
+  state.lastDecayDay = today;
+  let total = 0;
+  state.members.forEach(m=>{
+    if (m.bal > DECAY_THRESHOLD){
+      const cut = round1((m.bal - DECAY_THRESHOLD) * DECAY_RATE);
+      if (cut > 0){ m.bal = round1(m.bal - cut); total += cut; pushNotification(m.name, `⏳ 60-day decay: ${cut} points recycled, balance now ${m.bal}`); }
+    }
+  });
+  if (total > 0) logAdmin(`[Decay] Day ${today}: ${round1(total)} points decayed in total.`, 'gold');
+}
+function isTaskExpired(t){ return t.deadlineAt ? state.time.virtualNow >= t.deadlineAt : false; }
+function deadlineLeftLabel(t){ return t.deadlineAt ? leftLabelFromTs(t.deadlineAt) : ''; }
+function expireTasks(){
+  let changed = false;
+  state.members.forEach(m=>{
+    m.published.forEach(t=>{
+      if (t.pubState === 'awaiting' && isTaskExpired(t)){ t.pubState = 'expired'; changed = true; pushNotification(m.name, `⌛ Your post "${t.content}" has expired and was closed automatically`); }
+    });
+  });
+  if (changed) logAdmin('[Deadline] Some tasks expired and were closed.', 'sys');
+}
+function updateTaskStatuses(){
+  let changed = 0;
+  state.members.forEach(m=>{
+    m.published.forEach(t=>{
+      if (t.pubState !== 'awaiting' && t.pubState !== 'accepted') return;
+      if (!t.deadlineAt) return;
+      const newStatus = statusFromDeadline(t.deadlineAt);
+      if (t.status !== newStatus){ t.status = newStatus; changed++; }
+    });
+    m.accepted.forEach(t=>{
+      if (!t.deadlineAt) return;
+      const newStatus = statusFromDeadline(t.deadlineAt);
+      if (t.status !== newStatus) t.status = newStatus;
+    });
+  });
+  if (changed) logAdmin(`[Urgency] ${changed} tasks updated urgency by remaining time.`, 'sys');
+}
+function expireScarcePools(){
+  state.scarcePools.forEach(p=>{
+    if (p.pubState === 'open' && state.time.virtualNow >= p.deadlineAt){
+      p.pubState = 'awaiting-owner';
+      logAdmin(`[Scarce] "${p.title}" sign-up closed, ${p.applicants.length} applicants, waiting for owner ${p.owner} to pick.`, 'gold');
+      const ownerM = findMember(p.owner);
+      if (ownerM) pushNotification(ownerM.name, `📋 "${p.title}" sign-up closed, ${p.applicants.length} applicants. Go to Tasks → My scarce posts to see data and pick.`);
+    }
+  });
+}
+
+/* ★★★ 支持多选：ownerPickWinners ★★★ */
+function ownerPickWinners(poolId, winnerNames){
+  const p = state.scarcePools.find(x=>x.id===poolId);
+  if (!p) return;
+  if (p.owner !== state.currentUser){ toast('Only the poster can pick'); return; }
+  if (p.pubState !== 'awaiting-owner'){ toast('Not pickable now'); return; }
+  const valid = winnerNames.filter(n => p.applicants.includes(n));
+  if (!valid.length){ toast('No valid applicants'); return; }
+  if (valid.length > p.quota){ toast(`At most ${p.quota} can be picked`); return; }
+
+  p.winners = [...valid];
+  p.losers = p.applicants.filter(n => !valid.includes(n));
+  p.pubState = 'done'; p.resultsPublished = true;
+
+  p.winners.forEach(name=>{
+    pushNotification(name, `🎉 You were selected for "${p.title}"! The poster picked you.`);
+  });
+
+  p.losers.forEach(n=>{
+    const m = findMember(n); if (!m) return;
+    const rank = rankLabelOf(m); const relS = relScoreOf(m); const starS = starScoreOf(m); const actS = activityScoreOf(m);
+    let reason = `ranked ${rank.text}`;
+    if (relS < 0.7) reason += ', low reliability';
+    else if (starS < 0.7) reason += ', low stars';
+    else if (actS < 0.5) reason += ', low activity';
+    pushNotification(n, `📭 Unfortunately not selected for "${p.title}" (${reason}). Better luck next time!`);
+  });
+
+  logAdmin(`[Scarce result] "${p.title}" poster ${p.owner} picked ${p.winners.join(', ')}; ${p.losers.length} rejected.`, 'gold');
+  toast(`Picked ${p.winners.length} ${p.isSquad?'teammate(s)':'winner(s)'}`);
+  renderAll();
+}
+/* 兼容旧的单pick调用 */
+function ownerPickWinner(poolId, winnerName){
+  ownerPickWinners(poolId, [winnerName]);
+}
+
+function pushNotification(memberName, text){
+  if (!state.notifications[memberName]) state.notifications[memberName] = [];
+  const ts = new Date(state.time.virtualNow);
+  state.notifications[memberName].unshift({ id:'N'+Date.now()+Math.random(), text, read:false, ts:`${String(ts.getHours()).padStart(2,'0')}:${String(ts.getMinutes()).padStart(2,'0')}` });
+}
+function unreadCount(name){ return (state.notifications[name] || []).filter(n=>!n.read).length; }
+function hasMutualRelation(a, b){
+  if (!a || !b || a === b) return false;
+  return state.txs.some(t => (t.from === a && t.to === b) || (t.from === b && t.to === a));
+}
+function hasActiveTaskWith(a, b){
+  const am = findMember(a), bm = findMember(b);
+  if (!am || !bm) return false;
+  const activeStates = ['in-progress','pending-me','pending-other','pending-rate'];
+  return am.accepted.some(t=>activeStates.includes(t.taskState) && t.owner===b) || bm.accepted.some(t=>activeStates.includes(t.taskState) && t.owner===a);
+}
+function getPlazaTasks(){
+  const list = [];
+  state.members.forEach(m=>{
+    m.published.forEach(t=>{ if (t.pubState === 'awaiting' && !isTaskExpired(t) && !t.reported) list.push(t); });
+  });
+  return list;
+}
+function ratingProbabilities(rel){
+  const pGood = clamp(0.10 + rel*0.60, 0, 0.90);
+  const pBad  = clamp(0.60 - rel*0.58, 0, 0.80);
+  const pMid  = clamp(1 - pGood - pBad, 0, 1);
+  return { positive:pGood, neutral:pMid, negative:pBad };
+}
+function rollRating(rel){
+  const p = ratingProbabilities(rel);
+  const r = Math.random();
+  if (r < p['positive']) return 'positive';
+  if (r < p['positive'] + p['neutral']) return 'neutral';
+  return 'negative';
+}
+function computeRatingFactor(baseRating, stars, wouldAgain){
+  let f = RATING_FACTOR[baseRating] || 1.0;
+  const starDelta = { 5: +0.10, 4: 0, 3: -0.05, 2: -0.15, 1: -0.30 }[stars] || 0;
+  const willDelta = wouldAgain ? +0.05 : -0.10;
+  return clamp(f + starDelta + willDelta, 0.30, 1.50);
+}
+function virtualDay(){ return Math.floor(state.time.virtualNow / DAY_MS); }
+function updateVirtualClock(){ const vt = $('#virtualTime'); if (vt) vt.textContent = virtualDay(); }
+function startTimeMode(){
+  if (state.time.timer) return;
+  state.time.enabled = true;
+  state.time.lastTickReal = Date.now();
+  state.time.lastAutoDay = virtualDay();
+  state.time.lastDecayDay = virtualDay();
+  state.time.timer = setInterval(tickTime, 250);
+  $('#btnTimeToggle').textContent = '⏸️ Pause';
+  $('#btnTimeToggle').classList.add('pause');
+  logAdmin('[Time mode] Started.', 'gold');
+}
+function stopTimeMode(){
+  state.time.enabled = false;
+  if (state.time.timer){ clearInterval(state.time.timer); state.time.timer = null; }
+  $('#btnTimeToggle').textContent = '▶️ Start';
+  $('#btnTimeToggle').classList.remove('pause');
+  logAdmin('[Time mode] Paused.', 'sys');
+}
+function tickTime(){
+  const realNow = Date.now();
+  state.time.virtualNow += (realNow - state.time.lastTickReal) * state.time.ratio;
+  state.time.lastTickReal = realNow;
+  checkProtectionExpiry(); runDecay(); expireTasks(); updateTaskStatuses(); expireScarcePools();
+  const today = virtualDay();
+  if (today > state.time.lastAutoDay){
+    state.time.lastAutoDay = today;
+    const n = Math.floor(Math.random() * 4);
+    for (let i=0;i<n;i++) autoGenerateTrade();
+    if (n > 0) logAdmin(`[Time mode] Day ${today}: ${n} exchanges happened in the community.`, 'sys');
+  }
+  updateVirtualClock();
+  if (state.view === 'admin'){ renderAdminTables(); renderRankHist(); renderReportQueue(); renderDataPanel(); }
+  if (state.view === 'user'){ if (state.userTab === 'plaza' || state.userTab === 'tasks') renderUser(); }
+}
+function autoGenerateTrade(){
+  if (state.members.length < 2) return;
+  const n = state.members.length;
+  const i = Math.floor(Math.random()*n);
+  let j = Math.floor(Math.random()*n);
+  while (j === i) j = Math.floor(Math.random()*n);
+  const provider = state.members[i], receiver = state.members[j];
+  const labels = ['fetch package','lend notes','save a seat','fix computer','bring food','tutoring'];
+  const label = labels[Math.floor(Math.random()*labels.length)];
+  const r = Math.random();
+  const status = r<0.2 ? 'urgent' : (r<0.8 ? 'normal' : 'relaxed');
+  const rating = rollRating(provider.rel);
+  const stars = [3,4,4,5,5,5][Math.floor(Math.random()*6)];
+  const wouldAgain = rating === 'negative' ? false : (rating === 'neutral' ? Math.random() > 0.5 : true);
+  settleTrade(provider, receiver, label, status, rating, { kind:'need', stars, wouldAgain });
+}
+function bindTimeControls(){
+  $('#btnTimeToggle').addEventListener('click', ()=>{ if (state.time.enabled) stopTimeMode(); else startTimeMode(); });
+  $('#timeRatio').addEventListener('change', e=>{
+    state.time.ratio = parseInt(e.target.value, 10);
+    logAdmin(`[Time mode] Ratio changed to ${e.target.selectedOptions[0].text}.`, 'sys');
+  });
+  updateVirtualClock();
+}
+function playSplash(){
+  const splash = $('#splash');
+  if (!splash) return;
+  setTimeout(()=>{ splash.classList.add('hide'); setTimeout(()=>{ splash.style.display = 'none'; }, 700); }, 3200);
+}
+function fillRoleSelect(selectEl, selected){
+  selectEl.innerHTML = state.members.map(m=>`<option value="${m.name}" ${m.name===selected?'selected':''}>${m.name}${m.protection.active?' 🛡️':''}${unreadCount(m.name)?` 🔔${unreadCount(m.name)}`:''}</option>`).join('');
+}
+function bindLogin(){
+  fillRoleSelect($('#loginRole'), state.members[0] && state.members[0].name);
+  $('#btnLogin').addEventListener('click', ()=>{
+    state.currentUser = $('#loginRole').value;
+    $('#loginMask').style.display = 'none';
+    toast(`Entered as: ${state.currentUser}`);
+    renderAll();
+  });
+}
+function bindRoleSwitch(){
+  $('#roleSelect').addEventListener('change', ()=>{
+    state.currentUser = $('#roleSelect').value;
+    state.userTab = 'plaza';
+    toast(`Switched to ${state.currentUser}`);
+    renderAll();
+  });
+}
+function bindViewSwitch(){
+  $$('#viewSwitch .vs').forEach(vs=>{
+    vs.addEventListener('click', ()=>{
+      state.view = vs.dataset.v;
+      $$('#viewSwitch .vs').forEach(x=>x.classList.toggle('active', x===vs));
+      $('#shell').classList.toggle('admin', state.view==='admin');
+      $('#userView').classList.toggle('active', state.view==='user');
+      $('#adminView').classList.toggle('active', state.view==='admin');
+      renderAll();
+    });
+  });
+}
+function renderAll(){
+  const sel = $('#roleSelect');
+  if (sel) fillRoleSelect(sel, state.currentUser);
+  if (state.view === 'user') renderUser(); else renderAdmin();
+  updateVirtualClock();
+}
+function renderUser(){
+  const m = me(); if (!m) return;
+  $$('#tabbar .tab').forEach(el=>{ el.classList.toggle('active', el.dataset.tab === state.userTab); });
+  const c = $('#userContent');
+  if (state.userTab === 'plaza') renderPlaza(c);
+  else if (state.userTab === 'publish') renderPublish(c);
+  else if (state.userTab === 'tasks') renderTasks(c);
+  else if (state.userTab === 'profile') renderProfile(c);
+  c.scrollTop = 0;
+}
+
+/* ========== Plaza ========== */
+function renderPlaza(c){
+  const m = me();
+  let available = getPlazaTasks();
+  if (state.plazaFilter !== 'all') available = available.filter(t=>(t.kind||'need') === state.plazaFilter);
+  const order = { 'urgent':0, 'normal':1, 'relaxed':2 };
+  available.sort((a,b)=> order[a.status]-order[b.status]);
+
+  let html = `
+    <div class="card">
+      <h2>Plaza</h2>
+      <div class="hint">Viewing as "${m.name}". Posting a request <b>costs no points</b>; points are a reputation scale, not currency.</div>
+      <div class="info-box">💡 You are currently in <b>${rankLabelOf(m).text}</b> in the community. Reputation data is transparent; priority is judged by the community itself.</div>
+    </div>
+    <div class="filter-tabs">
+      <span class="ft ${state.plazaFilter==='all'?'active':''}" data-f="all">All</span>
+      <span class="ft ${state.plazaFilter==='need'?'active':''}" data-f="need">🙋 Request</span>
+      <span class="ft ${state.plazaFilter==='offer'?'active':''}" data-f="offer">🎁 Offer</span>
+    </div>`;
+
+  const openPools = state.scarcePools.filter(p => p.pubState === 'open' && state.time.virtualNow < p.deadlineAt);
+  openPools.forEach(p=>{
+    const joined = p.applicants.includes(m.name);
+    const leftLabel = leftLabelFromTs(p.deadlineAt);
+    const isOwner = p.owner === m.name;
+    const isSquad = p.isSquad === true;
+    const badge = isSquad
+      ? `<span class="kind-badge squad">Squad · ${p.quota} spots</span>`
+      : `<span class="kind-badge offer" style="background:#FBF3DC;color:#8A6A0F;">Scarce · ${p.quota} slots</span>`;
+    html += `
+      <div class="task-card urgent" style="border-left-color:var(--gold);">
+        <div class="title">${isSquad?'👥':'🏆'} ${p.title} ${badge}</div>
+        <div class="meta">Poster: <span class="name-link" data-view-card="${p.owner}">${p.owner}</span>${isOwner?' (me)':''} · ${p.applicants.length} applicants${p.desc?` · ${p.desc}`:''}</div>
+        <div class="row">
+          ${urgencyChip('relaxed', leftLabel)}
+          ${isOwner ? `<span class="hint" style="margin:0;">Posted by me</span>`
+            : (joined ? `<span class="hint" style="margin:0;color:var(--green);">✅ Applied</span>`
+            : `<button class="btn btn-gold btn-sm" data-join="${p.id}">Apply</button>`)}
+        </div>
+      </div>`;
+  });
+
+  if (!available.length && !openPools.length){
+    html += `<div class="empty">No pending requests right now</div>`;
+  } else if (available.length){
+    available.slice(0, 60).forEach(t=>{
+      const owner = findMember(t.owner);
+      const ownerRel = owner ? owner.rel : 0.8;
+      const isMine = t.owner === m.name;
+      const kind = t.kind || 'need';
+      const kindLabel = kind==='need' ? '🙋' : '🎁';
+      const actionLabel = kind==='need' ? 'I can help' : 'I need this';
+      const dl = deadlineLeftLabel(t);
+      html += `
+      <div class="task-card ${t.status}">
+        <button class="report-btn" data-report="${t.id}" title="Report">⚑</button>
+        <div class="title"><span class="kind-badge ${kind}">${kindLabel}</span>${t.content}</div>
+        <div class="meta"><span class="name-link" data-view-card="${t.owner}">${t.owner}</span>${isMine?' (me)':''} · ${ownerRel.toFixed(2)} · ${t.scene} · ${t.createdAt}</div>
+        ${renderTagRow(t.tags)}
+        <div class="row">
+          ${urgencyChip(t.status, dl)}
+          ${isMine ? `<span class="hint" style="margin:0;">Posted by me</span>`
+            : `<button class="btn btn-primary btn-sm" data-accept="${t.id}">${actionLabel}</button>`}
+        </div>
+      </div>`;
+    });
+    if (available.length > 60) html += `<div class="hint">Showing first 60 pending requests (${available.length} total).</div>`;
+  }
+  c.innerHTML = html;
+
+  c.querySelectorAll('.filter-tabs .ft').forEach(ft=>{ ft.addEventListener('click', ()=>{ state.plazaFilter = ft.dataset.f; renderPlaza(c); }); });
+  c.querySelectorAll('[data-accept]').forEach(btn=>{ btn.addEventListener('click', ()=> openAccept(btn.dataset.accept)); });
+  c.querySelectorAll('[data-join]').forEach(btn=>{ btn.addEventListener('click', ()=> joinScarce(btn.dataset.join)); });
+  c.querySelectorAll('[data-view-card]').forEach(el=>{ el.addEventListener('click', ()=> openProfileCard(el.dataset.viewCard)); });
+  c.querySelectorAll('[data-report]').forEach(btn=>{ btn.addEventListener('click', ()=> openReport(btn.dataset.report)); });
+}
+
+function openReport(taskId){
+  const found = findTaskById(taskId);
+  if (!found){ toast('Task does not exist'); return; }
+  state.pendingReportId = taskId; state.pendingReportReason = 'Illegal content';
+  $('#reportInfo').innerHTML = `Content: "${found.task.content}"<br>Poster: ${found.task.owner}`;
+  $$('#reportReason .opt').forEach(o=>o.classList.remove('sel'));
+  $('#reportReason .opt[data-r="Illegal content"]').classList.add('sel');
+  $('#reportComment').value = '';
+  $('#reportMask').classList.add('show');
+}
+function bindReport(){
+  $$('#reportReason .opt').forEach(opt=>{
+    opt.addEventListener('click', ()=>{
+      $$('#reportReason .opt').forEach(o=>o.classList.remove('sel'));
+      opt.classList.add('sel');
+      state.pendingReportReason = opt.dataset.r;
+    });
+  });
+  $('#btnCancelReport').addEventListener('click', ()=>{ $('#reportMask').classList.remove('show'); state.pendingReportId = null; });
+  $('#btnConfirmReport').addEventListener('click', ()=>{
+    const id = state.pendingReportId; if (!id) return;
+    const found = findTaskById(id); if (!found) return;
+    const reporter = state.currentUser;
+    found.task.reported = true; found.task.reportedReason = state.pendingReportReason;
+    state.reports.push({ id:'R'+Date.now(), taskId:id, taskContent:found.task.content, taskOwner:found.task.owner, reporter, reason:state.pendingReportReason, comment:$('#reportComment').value.trim(), ts:virtualDay(), status:'pending' });
+    pushNotification(found.task.owner, `⚠️ Your post "${found.task.content}" was reported (${state.pendingReportReason}) and is hidden pending review`);
+    logAdmin(`[Report] ${reporter} reported "${found.task.content}" (${state.pendingReportReason})`, 'bad');
+    $('#reportMask').classList.remove('show'); state.pendingReportId = null;
+    toast('Report submitted, content temporarily hidden');
+    renderAll();
+  });
+}
+
+function updateUspTagPreview(){
+  const title = ($('#uspTitle').value || '').trim();
+  const desc = ($('#uspDesc').value || '').trim();
+  const tags = extractTags(title + ' ' + desc, 'Other');
+  const box = $('#uspTagPreview');
+  const hasAny = (tags.skills.length || (tags.scene && tags.scene !== 'Other') || tags.times.length);
+  if (!hasAny){ box.innerHTML = `<div class="tp-title">Auto-detected tags</div><div class="tp-empty">No tags yet, keep typing</div>`; return; }
+  box.innerHTML = `<div class="tp-title">Auto-detected tags</div>${renderTagRow(tags) || '<div class="tp-empty">(fewer than 3 tags, hidden)</div>'}`;
+}
+function renderUspTplList(){
+  const list = $('#uspTplList');
+  if (state.uspTplTab === 'none'){ list.style.display = 'none'; return; }
+  list.style.display = 'flex';
+  const arr = state.uspTplTab === 'squad' ? TASK_TEMPLATES_SQUAD : TASK_TEMPLATES_NORMAL;
+  list.innerHTML = arr.map((t, i) => `
+    <div class="tpl-item ${state.uspTplSel===i?'sel':''}" data-i="${i}">
+      <div class="tpl-c">${t.content}</div>
+      <div class="tpl-m">${t.quota ? `Slots ${t.quota} · ` : ''}${t.hours < 24 ? t.hours + ' h' : Math.round(t.hours/24) + ' d'} · Scene ${t.scene}</div>
+    </div>
+  `).join('');
+  list.querySelectorAll('.tpl-item').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      state.uspTplSel = parseInt(el.dataset.i, 10);
+      const tpl = arr[state.uspTplSel];
+      $('#uspTitle').value = tpl.content;
+      if (tpl.quota) $('#uspQuota').value = tpl.quota;
+      const hours = tpl.hours;
+      if (hours < 24){ $('#uspDeadlineNum').value = hours; $('#uspDeadlineUnit').value = 'hour'; }
+      else { $('#uspDeadlineNum').value = Math.round(hours/24); $('#uspDeadlineUnit').value = 'day'; }
+      updateUspDeadlinePreview(); updateUspTagPreview(); renderUspTplList();
+    });
+  });
+}
+function openUserScarcePublish(){
+  $('#uspTitle').value = ''; $('#uspQuota').value = 1; $('#uspDesc').value = '';
+  $('#uspAgree').checked = false; $('#btnConfirmUsp').disabled = true;
+  $('#uspDeadlineNum').value = 1; $('#uspDeadlineUnit').value = 'day';
+  state.uspTplTab = 'none'; state.uspTplSel = -1;
+  $$('#uspTplTabs .tt').forEach(o=>o.classList.remove('active'));
+  $('#uspTplTabs .tt[data-t="none"]').classList.add('active');
+  $('#uspTplList').style.display = 'none';
+  updateUspDeadlinePreview(); updateUspTagPreview();
+  $('#scarcePublishMask').classList.add('show');
+}
+function updateUspDeadlinePreview(){
+  $('#uspDeadlinePreview').innerHTML = formatDeadlinePreview($('#uspDeadlineNum').value, $('#uspDeadlineUnit').value);
+}
+function bindUserScarcePublish(){
+  $('#uspDeadlineNum').addEventListener('input', updateUspDeadlinePreview);
+  $('#uspDeadlineUnit').addEventListener('change', updateUspDeadlinePreview);
+  $('#uspTitle').addEventListener('input', updateUspTagPreview);
+  $('#uspDesc').addEventListener('input', updateUspTagPreview);
+  $('#uspAgree').addEventListener('change', e=>{ $('#btnConfirmUsp').disabled = !e.target.checked; });
+  $$('#uspTplTabs .tt').forEach(tt=>{
+    tt.addEventListener('click', ()=>{
+      $$('#uspTplTabs .tt').forEach(o=>o.classList.remove('active'));
+      tt.classList.add('active');
+      state.uspTplTab = tt.dataset.t; state.uspTplSel = -1;
+      renderUspTplList();
+    });
+  });
+  $('#btnCancelUsp').addEventListener('click', ()=> $('#scarcePublishMask').classList.remove('show'));
+  $('#btnConfirmUsp').addEventListener('click', ()=>{
+    const m = me();
+    const title = ($('#uspTitle').value || '').trim();
+    if (!title){ alert('Please enter a resource title'); return; }
+    const desc = ($('#uspDesc').value || '').trim();
+    const combined = title + ' ' + desc;
+    const hits = scanBlockWords(combined);
+    if (hits.P0.length){ alert(`Content contains prohibited terms: ${hits.P0.join(', ')}\nPlease revise before posting`); return; }
+    const quota = clamp(parseInt($('#uspQuota').value, 10) || 1, 1, 20);
+    const num = Math.max(1, parseInt($('#uspDeadlineNum').value, 10) || 1);
+    const unit = $('#uspDeadlineUnit').value;
+    const deadlineAt = deadlineFromInput(num, unit);
+    const tags = extractTags(combined, 'Other');
+    const isSquad = state.uspTplTab === 'squad' && state.uspTplSel >= 0;
+    state.scarcePools.unshift({ id:'SC'+Date.now(), owner:m.name, title, quota, desc, deadlineAt, deadlineHours:unit==='hour'?num:num*24, createdAt:'Just now', pubState:'open', applicants:[], winners:[], losers:[], resultsPublished:false, tags, isSquad });
+    state.members.forEach(x=>{ if (x.name !== m.name) pushNotification(x.name, `📢 ${m.name} posted a ${isSquad?'squad call':'scarce resource'} "${title}" with ${quota} slots, closes ${leftLabelFromTs(deadlineAt)}. Go to the plaza to apply`); });
+    logAdmin(`[${isSquad?'Squad':'Scarce'} post] ${m.name} posted "${title}" with ${quota} slots.`, 'gold');
+    $('#scarcePublishMask').classList.remove('show');
+    toast('Posted, visible on the user side');
+    renderAll();
+  });
+}
+function joinScarce(poolId){
+  const p = state.scarcePools.find(x=>x.id===poolId);
+  if (!p){ toast('Scarce post does not exist'); return; }
+  if (p.owner === state.currentUser){ toast('Cannot apply to your own post'); return; }
+  if (p.pubState !== 'open'){ toast('Sign-up has closed'); return; }
+  if (state.time.virtualNow >= p.deadlineAt){ toast('Sign-up has closed'); return; }
+  const m = me();
+  if (p.applicants.includes(m.name)){ toast('You have already applied'); return; }
+  p.applicants.push(m.name);
+  toast('Applied! Waiting for the poster to pick');
+  logAdmin(`[Apply] ${m.name} applied for "${p.title}" (${p.applicants.length} applicants)`, 'sys');
+  pushNotification(p.owner, `📥 ${m.name} applied for your "${p.title}"`);
+  renderUser();
+}
+function findTaskById(id){
+  for (const m of state.members){ const t = m.published.find(x=>x.id===id); if (t) return { task: t, owner: m }; }
+  return null;
+}
+function openAccept(id){
+  const found = findTaskById(id); if (!found) return;
+  const t = found.task;
+  if (isTaskExpired(t)){ toast('This post has expired'); return; }
+  if (t.reported){ toast('This post is under review'); return; }
+  const kind = t.kind || 'need';
+  state.pendingAcceptId = id;
+  const clicker = me();
+  const receiver = kind === 'need' ? found.owner : clicker;
+  const provider = kind === 'need' ? clicker : found.owner;
+  $('#acceptInfo').innerHTML = `
+    <b>${kind==='need' ? 'Request' : 'Offer'}:</b> ${t.content}<br>
+    Poster: ${t.owner}<br>
+    Urgency: <span class="tag ${t.status}">${urgencyLabel(t.status)}</span><br>
+    Deadline: ${deadlineLeftLabel(t) || '—'}<br>
+    Helper: ${provider.name} | Receiver: ${receiver.name}${receiver.protection.active?' 🛡️':''}`;
+  $('#acceptMask').classList.add('show');
+}
+function bindAccept(){
+  $('#btnCancelAccept').addEventListener('click', ()=>{ $('#acceptMask').classList.remove('show'); state.pendingAcceptId = null; });
+  $('#btnConfirmAccept').addEventListener('click', ()=>{
+    const id = state.pendingAcceptId; if (!id) return;
+    const found = findTaskById(id); if (!found) return;
+    if (isTaskExpired(found.task)){ toast('This post has expired'); return; }
+    const m = me();
+    const kind = found.task.kind || 'need';
+    const owner = found.owner;
+    found.task.pubState = 'accepted'; found.task.acceptedBy = m.name;
+    if (kind === 'need'){
+      m.accepted.unshift({ ...found.task, role:'provider', acceptedAt:'Just now', taskState:'in-progress', myConfirmed:false, otherConfirmed:false });
+      owner.accepted.unshift({ ...found.task, role:'receiver', acceptedAt:'Just now', taskState:'in-progress', myConfirmed:false, otherConfirmed:false });
+    } else {
+      m.accepted.unshift({ ...found.task, role:'receiver', acceptedAt:'Just now', taskState:'in-progress', myConfirmed:false, otherConfirmed:false });
+      owner.accepted.unshift({ ...found.task, role:'provider', acceptedAt:'Just now', taskState:'in-progress', myConfirmed:false, otherConfirmed:false });
+    }
+    $('#acceptMask').classList.remove('show'); state.pendingAcceptId = null;
+    toast('Accepted! Both sides confirm to proceed to rating');
+    state.userTab = 'tasks'; state.taskTab = 'helpOthers';
+    renderUser();
+  });
+}
+function renderPublish(c){
+  const m = me();
+  c.innerHTML = `
+    <div class="card">
+      <h2>Post (current: ${m.name})</h2>
+      <label>Type</label>
+      <div class="seg" id="pubKind">
+        <div class="opt need sel" data-k="need">🙋 I need help</div>
+        <div class="opt offer" data-k="offer">🎁 I can offer</div>
+      </div>
+      <div class="info-box">💡 Posting a request <b>costs no points</b>. Points are a reputation scale, only used to decide priority, not tradable.</div>
+      <label>Content</label>
+      <textarea id="pubContent" placeholder="e.g. Stata regression error, help me find the bug" maxlength="80"></textarea>
+      <div class="tag-preview-box" id="pubTagPreview"><div class="tp-title">Auto-detected tags</div><div class="tp-empty">Tags will appear once you start typing</div></div>
+      <label>Deadline (free-form)</label>
+      <div class="deadline-input"><input id="pubDeadlineNum" type="number" value="1" min="1" max="9999" step="1"><select id="pubDeadlineUnit"><option value="hour">hours</option><option value="day" selected>days</option></select></div>
+      <div class="deadline-preview" id="pubDeadlinePreview"></div>
+      <label>Scene</label>
+      <select id="pubScene"><option>Library</option><option>Canteen</option><option>Dorm</option><option>Academics</option><option>Sports</option><option>Career</option><option>Other</option></select>
+      <div class="compliance-box">⚖️ <b>Compliance commitment</b>: by posting, you promise not to publish illegal content, not to involve money transactions, ghostwriting, exam-taking, or privacy requests.</div>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:normal;margin-top:10px;"><input type="checkbox" id="pubAgree" style="width:auto;"><span style="font-size:13px;">I have read and agree to the compliance commitment above</span></label>
+      <div class="warn">Forbidden: ghostwriting, exam-taking, money transactions, long-term hire, privacy requests.</div>
+      <button class="btn btn-primary btn-block" id="btnPubSubmit" style="margin-top:16px;" disabled>Post</button>
+    </div>
+    <div class="card">
+      <h2>🏆 My scarce resources / squad calls</h2>
+      <div class="hint">After the sign-up deadline, the platform shows all applicants' public data, and you pick the winner yourself.</div>
+      <button class="btn btn-gold btn-block" id="btnUspOpen" style="margin-top:10px;">➕ Post scarce resource / squad call</button>
+      <div id="myScarceList" style="margin-top:12px;"></div>
+    </div>
+    <div class="card">
+      <h2>My credit ${m.protection.active?`<span class="tag ${protectionLeftDays(m)<=3?'protect-warn':'protected'}">🛡️ ${protectionLeftDays(m)} d left</span>`:''}</h2>
+      <div class="list-item"><div class="l"><div class="t">Current balance</div></div><b>${m.bal} pts</b></div>
+      <div class="list-item"><div class="l"><div class="t">Reputation badge</div></div><b>${relBadge(m.rel)}</b></div>
+      <div class="list-item"><div class="l"><div class="t">Community position</div></div><b style="color:var(--gold);">${rankLabelOf(m).text}</b></div>
+    </div>
+    <div class="card">
+      <h2>My posts (${m.published.filter(t=>t.pubState==='awaiting').length} pending)</h2>
+      ${m.published.length ? m.published.slice(0, 10).map(t=>`
+        <div class="list-item">
+          <div class="l"><div class="t">${(t.kind||'need')==='need'?'🙋':'🎁'} ${t.content}</div>
+          <div class="s">${urgencyLabel(t.status)} · ${t.scene} · ${t.pubState} · ${deadlineLeftLabel(t)}${t.acceptedBy?` (accepted by ${t.acceptedBy})`:''}${t.reported?' · ⚠️ Under review':''}</div></div>
+          <span class="tag ${t.status}">${urgencyLabel(t.status)}</span>
+        </div>`).join('') : '<div class="hint">Nothing posted yet</div>'}
+    </div>`;
+
+  let pubKind = 'need';
+  function updatePubPreview(){ $('#pubDeadlinePreview').innerHTML = formatDeadlinePreview($('#pubDeadlineNum').value, $('#pubDeadlineUnit').value); }
+  function updatePubTagPreview(){
+    const content = ($('#pubContent').value || '').trim();
+    const scene = $('#pubScene') ? $('#pubScene').value : 'Other';
+    const tags = extractTags(content + ' ' + scene, scene);
+    const box = $('#pubTagPreview');
+    const hasAny = (tags.skills.length || (tags.scene && tags.scene !== 'Other') || tags.times.length);
+    if (!hasAny){ box.innerHTML = `<div class="tp-title">Auto-detected tags</div><div class="tp-empty">No tags yet, keep typing</div>`; return; }
+    box.innerHTML = `<div class="tp-title">Auto-detected tags</div>${renderTagRow(tags) || '<div class="tp-empty">(fewer than 3 tags, hidden)</div>'}`;
+  }
+  updatePubPreview(); updatePubTagPreview();
+
+  c.querySelectorAll('#pubKind .opt').forEach(opt=>{
+    opt.addEventListener('click', ()=>{
+      c.querySelectorAll('#pubKind .opt').forEach(o=>o.classList.remove('sel'));
+      opt.classList.add('sel');
+      pubKind = opt.dataset.k;
+      $('#pubContent').placeholder = pubKind === 'need' ? 'e.g. Stata regression error, help me find the bug' : 'e.g. Can help take ID photos this weekend';
+    });
+  });
+  $('#pubDeadlineNum').addEventListener('input', updatePubPreview);
+  $('#pubDeadlineUnit').addEventListener('change', updatePubPreview);
+  $('#pubContent').addEventListener('input', updatePubTagPreview);
+  $('#pubScene').addEventListener('change', updatePubTagPreview);
+  $('#pubAgree').addEventListener('change', e=>{ $('#btnPubSubmit').disabled = !e.target.checked; });
+  $('#btnUspOpen').addEventListener('click', ()=> openUserScarcePublish());
+  renderMyScarceList(c);
+  $('#btnPubSubmit').addEventListener('click', ()=>{
+    const content = $('#pubContent').value.trim();
+    if (!content){ alert('Please enter content'); return; }
+    if (content.length < 4){ alert('Content is too short'); return; }
+    const hits = scanBlockWords(content);
+    if (hits.P0.length){ alert(`Content contains prohibited terms: ${hits.P0.join(', ')}\nPlease revise before posting`); return; }
+    const scene = $('#pubScene').value;
+    const num = Math.max(1, parseInt($('#pubDeadlineNum').value, 10) || 1);
+    const unit = $('#pubDeadlineUnit').value;
+    const deadlineAt = deadlineFromInput(num, unit);
+    const tags = extractTags(content + ' ' + scene, scene);
+    m.published.unshift({ id:'M'+Date.now(), owner:m.name, kind:pubKind, content, status:statusFromDeadline(deadlineAt), scene, createdAt:'Just now', pubState:'awaiting', deadlineLabel:unit==='hour'?`within ${num} h`:`within ${num} d`, deadlineHours:unit==='hour'?num:num*24, deadlineAt, tags });
+    toast('Posted successfully!');
+    logAdmin(`[Post] ${m.name} posted a ${pubKind==='need'?'request':'offer'} "${content}".`, 'sys');
+    state.userTab = 'plaza'; renderUser();
+  });
+}
+function renderMyScarceList(c){
+  const m = me();
+  const myPools = state.scarcePools.filter(p=>p.owner === m.name);
+  const box = c.querySelector('#myScarceList'); if (!box) return;
+  if (!myPools.length){ box.innerHTML = '<div class="hint">Nothing posted yet</div>'; return; }
+  box.innerHTML = myPools.map(p=>{
+    const stateLabel = p.pubState === 'open' ? 'Open' : (p.pubState === 'awaiting-owner' ? 'Awaiting your pick' : 'Done');
+    const stateCls = p.pubState === 'open' ? 'open' : (p.pubState === 'awaiting-owner' ? 'pending-review' : 'done');
+    return `
+      <div class="list-item">
+        <div class="l"><div class="t">${p.isSquad?'👥':'🏆'} ${p.title} · ${p.quota} ${p.isSquad?'spots':'slots'}</div>
+        <div class="s">${leftLabelFromTs(p.deadlineAt)} · ${p.applicants.length} applicants${p.winners.length?` · picked ${p.winners.join(', ')}`:''}</div></div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span class="tag ${stateCls}">${stateLabel}</span>
+          ${p.pubState === 'awaiting-owner' ? `<button class="btn btn-gold btn-sm" data-dp-open="${p.id}">Pick</button>` : ''}
+          ${p.pubState === 'done' ? `<button class="btn btn-primary btn-sm" data-dp-view="${p.id}">See data</button>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+  box.querySelectorAll('[data-dp-open]').forEach(btn=>{ btn.addEventListener('click', ()=> openDataPanel(btn.dataset.dpOpen, true)); });
+  box.querySelectorAll('[data-dp-view]').forEach(btn=>{ btn.addEventListener('click', ()=> openDataPanel(btn.dataset.dpView, false)); });
+}
+
+/* ★★★ openDataPanel：STEP 4 多选 ★★★ */
+function openDataPanel(poolId, canPick){
+  const p = state.scarcePools.find(x=>x.id===poolId); if (!p) return;
+  if (p.owner !== state.currentUser){ toast('Only the poster can view'); return; }
+  $('#dpTitle').innerHTML = `${p.isSquad?'👥':'🏆'} ${p.title} · ${p.quota} ${p.isSquad?'spots':'slots'}`;
+  const applicants = p.applicants.map(n=>findMember(n)).filter(Boolean);
+  const candsBox = $('#dpCands'); candsBox.innerHTML = '';
+  applicants.forEach(m=>{
+    const el = document.createElement('div');
+    el.className = 'cand'; el.textContent = m.name; el.dataset.name = m.name;
+    if (p.winners.includes(m.name)) el.classList.add('win');
+    else if (p.losers.includes(m.name)) el.classList.add('lose');
+    candsBox.appendChild(el);
+  });
+  if (!applicants.length) candsBox.innerHTML = '<div class="hint">No applicants</div>';
+  const scored = applicants.map(m=>{
+    const relS = relScoreOf(m), starS = starScoreOf(m), actS = activityScoreOf(m);
+    return { name:m.name, relS:round3(relS), starS:round3(starS), actS:round3(actS), total:round3(RANK_W.rel*relS+RANK_W.star*starS+RANK_W.activity*actS) };
+  }).sort((a,b)=> b.total - a.total);
+  const scBox = $('#dpScores'); scBox.innerHTML = '';
+  if (!scored.length){ scBox.innerHTML = '<div class="hint">No applicants</div>'; }
+  else {
+    scored.forEach(s=>{
+      const card = document.createElement('div'); card.className = 'score-card active';
+      card.innerHTML = `
+        <div class="nm">${s.name}</div>
+        <div class="ln"><span>Reliability ${s.relS.toFixed(3)} × 0.40</span><b>${(s.relS*RANK_W.rel).toFixed(3)}</b></div>
+        <div class="ln"><span>Stars ${s.starS.toFixed(3)} × 0.40</span><b>${(s.starS*RANK_W.star).toFixed(3)}</b></div>
+        <div class="ln"><span>Activity ${s.actS.toFixed(3)} × 0.20</span><b>${(s.actS*RANK_W.activity).toFixed(3)}</b></div>
+        <div class="total">Total ${s.total.toFixed(3)} · ${rankLabelOf(findMember(s.name)).text}</div>`;
+      scBox.appendChild(card);
+    });
+  }
+  const rkBox = $('#dpRanks'); rkBox.innerHTML = '';
+  scored.forEach((s, i)=>{
+    const rank = i + 1; const isWinner = p.winners.includes(s.name);
+    const row = document.createElement('div');
+    row.className = `rank-row ${isWinner ? 'win' : 'r' + Math.min(rank, 5)} show`;
+    row.innerHTML = `<div class="rank">#${rank}</div><div>${s.name}</div><div class="sc">${rankLabelOf(findMember(s.name)).text}${isWinner?' 🏆 Picked':''}</div>`;
+    rkBox.appendChild(row);
+  });
+  if (!scored.length) rkBox.innerHTML = '<div class="hint">None</div>';
+  const pickBlock = $('#dpPickBlock'); const pickBox = $('#dpPick');
+  if (canPick && p.pubState === 'awaiting-owner'){
+    pickBlock.style.display = '';
+    const need = p.quota;
+    pickBox.innerHTML = `
+      <div class="hint" style="margin-bottom:8px;">
+        Pick ${need} ${p.isSquad?'teammate(s)':'winner(s)'} — selected <b id="dpPickCount">0</b>/${need}
+      </div>
+      <div id="dpPickBtns" style="display:flex;flex-wrap:wrap;gap:8px;">
+        ${applicants.map(m=>`<button class="btn btn-gray btn-sm" data-pick="${m.name}">Pick ${m.name}</button>`).join('')}
+      </div>
+      <div style="margin-top:10px;">
+        <button class="btn btn-gold btn-sm" id="btnDpConfirmPick" disabled>Confirm selection</button>
+      </div>`;
+
+    const selected = new Set();
+    const btns = pickBox.querySelectorAll('[data-pick]');
+    const cntEl = pickBox.querySelector('#dpPickCount');
+    const confirmBtn = pickBox.querySelector('#btnDpConfirmPick');
+
+    function refreshPickUI(){
+      cntEl.textContent = selected.size;
+      confirmBtn.disabled = selected.size !== need;
+      btns.forEach(b=>{
+        const on = selected.has(b.dataset.pick);
+        b.classList.toggle('btn-gold', on);
+        b.classList.toggle('btn-gray', !on);
+      });
+    }
+
+    btns.forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const name = btn.dataset.pick;
+        if (selected.has(name)) selected.delete(name);
+        else {
+          if (selected.size >= need){ toast(`Already picked ${need}`); return; }
+          selected.add(name);
+        }
+        refreshPickUI();
+      });
+    });
+
+    confirmBtn.addEventListener('click', ()=>{
+      if (selected.size !== need){ toast(`Please pick exactly ${need}`); return; }
+      ownerPickWinners(poolId, [...selected]);
+      openDataPanel(poolId, false);
+      $('#dpResultBlock').style.display = '';
+    });
+
+    refreshPickUI();
+    $('#dpResultBlock').style.display = 'none';
+  } else if (p.pubState === 'done'){
+    pickBlock.style.display = 'none';
+    $('#dpResultBlock').style.display = '';
+    const notis = $('#dpNotis'); notis.innerHTML = '';
+    if (!p.losers.length){ notis.innerHTML = '<div class="hint">No one was rejected this time</div>'; }
+    else {
+      p.losers.forEach(name=>{
+        const m = findMember(name); if (!m) return;
+        const rank = rankLabelOf(m); const relS = relScoreOf(m); const starS = starScoreOf(m); const actS = activityScoreOf(m);
+        let reason = `ranked ${rank.text}`;
+        if (relS < 0.7) reason += ', low reliability'; else if (starS < 0.7) reason += ', low stars'; else if (actS < 0.5) reason += ', low activity';
+        const el = document.createElement('div'); el.className = 'noti-card';
+        el.innerHTML = `<b>📢 To ${name}:</b><br>"Unfortunately not selected for "${p.title}" (${reason}). Better luck next time!"`;
+        notis.appendChild(el);
+      });
+    }
+    const winnerNote = document.createElement('div');
+    winnerNote.className = 'noti-card';
+    winnerNote.style.borderLeftColor = 'var(--green)';
+    winnerNote.style.background = '#F3FBF6'; winnerNote.style.color = '#1E8449';
+    const winnersList = p.winners.length ? p.winners.join(', ') : '—';
+    winnerNote.innerHTML = `<b>🎉 To ${winnersList}:</b><br>"Congrats on being selected for "${p.title}"! The poster picked you."`;
+    notis.insertBefore(winnerNote, notis.firstChild);
+  } else {
+    pickBlock.style.display = 'none'; $('#dpResultBlock').style.display = 'none';
+  }
+  $('#dataPanelMask').classList.add('show');
+}
+function bindDataPanel(){
+  $('#btnDpClose').addEventListener('click', ()=> $('#dataPanelMask').classList.remove('show'));
+  $('#dataPanelMask').addEventListener('click', e=>{ if (e.target === $('#dataPanelMask')) $('#dataPanelMask').classList.remove('show'); });
+}
+function renderTasks(c){
+  const m = me();
+  const helpOthers = m.accepted.filter(t => t.role === 'provider' && t.taskState !== 'done');
+  const othersHelpMe = m.accepted.filter(t => t.role === 'receiver' && t.taskState !== 'done');
+  const myPublished = m.published.filter(t => t.pubState === 'awaiting' || t.pubState === 'accepted');
+  const myScarce = state.scarcePools.filter(p=>p.owner === m.name && p.pubState !== 'done');
+  const history = m.history || [];
+  const tabDefs = [
+    { key:'helpOthers', label:'Helped', count: helpOthers.length },
+    { key:'othersHelpMe', label:'Received', count: othersHelpMe.length },
+    { key:'published', label:'Posted', count: myPublished.length },
+    { key:'history', label:'History', count: history.length },
+  ];
+  let listHtml = '';
+  if (state.taskTab === 'helpOthers') listHtml = helpOthers.length ? helpOthers.map(t=>renderAcceptedCard(t, m, 'provider')).join('') : '<div class="empty">No tasks you helped yet<br>Check the plaza for requests</div>';
+  else if (state.taskTab === 'othersHelpMe') listHtml = othersHelpMe.length ? othersHelpMe.map(t=>renderAcceptedCard(t, m, 'receiver')).join('') : '<div class="empty">No tasks where others helped you yet</div>';
+  else if (state.taskTab === 'published') listHtml = myPublished.length ? myPublished.map(t=>renderPublishedCard(t, m)).join('') : '<div class="empty">Nothing posted yet</div>';
+  else listHtml = history.length ? history.slice().reverse().map(t=>renderHistoryCard(t, m)).join('') : '<div class="empty">No history yet</div>';
+  const scarceBlock = myScarce.length ? `
+    <div class="card">
+      <h2>🏆 My scarce resources / squad calls (${myScarce.length})</h2>
+      ${myScarce.map(p=>{
+        const stateLabel = p.pubState === 'open' ? 'Open' : (p.pubState === 'awaiting-owner' ? 'Awaiting your pick' : 'Done');
+        const stateCls = p.pubState === 'open' ? 'open' : (p.pubState === 'awaiting-owner' ? 'pending-review' : 'done');
+        return `
+          <div class="list-item">
+            <div class="l"><div class="t">${p.isSquad?'👥':'🏆'} ${p.title} · ${p.quota} ${p.isSquad?'spots':'slots'}</div>
+            <div class="s">${leftLabelFromTs(p.deadlineAt)} · ${p.applicants.length} applicants</div></div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <span class="tag ${stateCls}">${stateLabel}</span>
+              ${p.pubState === 'awaiting-owner' ? `<button class="btn btn-gold btn-sm" data-dp-open="${p.id}">Pick</button>` : ''}
+              ${p.pubState === 'done' ? `<button class="btn btn-primary btn-sm" data-dp-view="${p.id}">See data</button>` : ''}
+            </div>
+          </div>`;
+      }).join('')}
+    </div>` : '';
+  c.innerHTML = `
+    <div class="card"><h2>Tasks</h2><div class="hint">Two-way confirmation: both sides confirm completion, then the receiver rates the helper.</div></div>
+    ${scarceBlock}
+    <div class="task-tabs">${tabDefs.map(td=>`<div class="tt ${state.taskTab===td.key?'active':''}" data-tt="${td.key}">${td.label}<span class="cnt">${td.count}</span></div>`).join('')}</div>
+    ${listHtml}`;
+  c.querySelectorAll('.task-tabs .tt').forEach(tt=>{ tt.addEventListener('click', ()=>{ state.taskTab = tt.dataset.tt; renderTasks(c); }); });
+  c.querySelectorAll('[data-confirm]').forEach(btn=>{ btn.addEventListener('click', ()=> confirmComplete(btn.dataset.confirm)); });
+  c.querySelectorAll('[data-rate]').forEach(btn=>{ btn.addEventListener('click', ()=> openRate(btn.dataset.rate)); });
+  c.querySelectorAll('[data-view-card]').forEach(el=>{ el.addEventListener('click', ()=> openProfileCard(el.dataset.viewCard)); });
+  c.querySelectorAll('[data-dp-open]').forEach(btn=>{ btn.addEventListener('click', ()=> openDataPanel(btn.dataset.dpOpen, true)); });
+  c.querySelectorAll('[data-dp-view]').forEach(btn=>{ btn.addEventListener('click', ()=> openDataPanel(btn.dataset.dpView, false)); });
+}
+function renderAcceptedCard(t, m, role){
+  const kind = t.kind || 'need';
+  const providerName = kind === 'need' ? t.acceptedBy : t.owner;
+  const receiverName = kind === 'need' ? t.owner : t.acceptedBy;
+  const otherName = role === 'provider' ? receiverName : providerName;
+  const roleLabel = role === 'receiver' ? '(received)' : '(provided)';
+  const dl = deadlineLeftLabel(t);
+  let actionHtml = ''; let stateTag = '';
+  if (t.taskState === 'in-progress'){
+    stateTag = `<span class="tag in-progress">In progress</span>`;
+    if (role === 'provider') actionHtml = `<button class="btn btn-green btn-sm" style="margin-top:10px;" data-confirm="${t.id}">Confirm completion</button>`;
+    else actionHtml = `<span class="hint" style="margin:0;">Waiting for helper to confirm</span>`;
+  } else if (t.taskState === 'pending-me'){
+    stateTag = `<span class="tag pending">Needs my confirmation</span>`;
+    actionHtml = `<button class="btn btn-green btn-sm" style="margin-top:10px;" data-confirm="${t.id}">Confirm completion</button>`;
+  } else if (t.taskState === 'pending-other'){
+    stateTag = `<span class="tag pending">Waiting for other side</span>`;
+    actionHtml = `<span class="hint" style="margin:0;">You have confirmed, waiting for the other side</span>`;
+  } else if (t.taskState === 'pending-rate'){
+    if (role === 'receiver'){ stateTag = `<span class="tag rate">Pending rating</span>`; actionHtml = `<button class="btn btn-gold btn-sm" style="margin-top:10px;" data-rate="${t.id}">Rate</button>`; }
+    else { stateTag = `<span class="tag rate">Awaiting other's rating</span>`; actionHtml = `<span class="hint" style="margin:0;">Waiting for receiver's rating</span>`; }
+  }
+  return `
+    <div class="task-card ${t.status}">
+      <div class="title">${kind==='need'?'🙋':'🎁'} ${t.content}</div>
+      <div class="meta"><span class="name-link" data-view-card="${otherName}">${otherName}</span> · ${t.scene} · ${roleLabel} · ${dl || '—'}</div>
+      ${renderTagRow(t.tags)}
+      <div class="row">${urgencyChip(t.status, dl)}${stateTag}</div>
+      ${actionHtml}
+    </div>`;
+}
+function renderPublishedCard(t, m){
+  const kind = t.kind || 'need';
+  const expired = t.pubState === 'expired' || isTaskExpired(t);
+  const accepted = t.pubState === 'accepted';
+  const reported = t.reported;
+  const stateLabel = reported ? 'Under review' : (expired ? 'Expired' : (accepted ? 'Accepted' : 'No taker yet'));
+  const stateCls = reported ? 'pending-review' : (expired ? 'expired' : (accepted ? 'accepted' : 'awaiting'));
+  const dl = deadlineLeftLabel(t);
+  return `
+    <div class="task-card ${expired?'':t.status}">
+      <div class="title">${kind==='need'?'🙋':'🎁'} ${t.content}</div>
+      <div class="meta">${t.scene} · ${t.createdAt} · ${dl}${t.acceptedBy?` · <span class="name-link" data-view-card="${t.acceptedBy}">${t.acceptedBy}</span>`:''}${reported?` · ⚠️ Reported (${t.reportedReason})`:''}</div>
+      ${renderTagRow(t.tags)}
+      <div class="row">${urgencyChip(expired?'expired':t.status, dl)}<span class="tag ${stateCls}">${stateLabel}</span></div>
+    </div>`;
+}
+function renderHistoryCard(t, m){
+  const kind = t.kind || 'need';
+  const providerName = kind === 'need' ? t.acceptedBy : t.owner;
+  const receiverName = kind === 'need' ? t.owner : t.acceptedBy;
+  const roleLabel = t.role === 'provider' ? 'I helped' : 'Others helped me';
+  const otherName = t.role === 'provider' ? receiverName : providerName;
+  const ratingHtml = t.rating ? `<span class="tag ${t.rating}">${t.rating} ${t.stars||5}★</span>` : '';
+  const amountHtml = t.amount !== undefined ? `<span class="tag ${t.amount>=0?'done':'gray'}">${t.amount>=0?'+':''}${t.amount} pts</span>` : '';
+  return `
+    <div class="task-card">
+      <div class="title">${kind==='need'?'🙋':'🎁'} ${t.content}</div>
+      <div class="meta">${roleLabel} · <span class="name-link" data-view-card="${otherName}">${otherName}</span> · ${t.scene}</div>
+      ${renderTagRow(t.tags)}
+      <div class="row"><span class="tag done">Completed</span>${ratingHtml}${amountHtml}</div>
+    </div>`;
+}
+function confirmComplete(taskId){
+  const m = me();
+  const t = m.accepted.find(x=>x.id===taskId); if (!t) return;
+  if (t.taskState === 'pending-rate'){ toast('Already completed'); return; }
+  t.myConfirmed = true;
+  const other = findOtherAcceptedRecord(m, t);
+  if (other) other.otherConfirmed = true;
+  const bothConfirmed = t.myConfirmed && t.otherConfirmed;
+  if (bothConfirmed){
+    t.taskState = 'pending-rate'; if (other) other.taskState = 'pending-rate';
+    const receiverName = (t.role === 'receiver') ? m.name : t.owner;
+    const receiverMember = findMember(receiverName);
+    if (receiverMember) pushNotification(receiverMember.name, `✅ "${t.content}" confirmed by both sides, please rate the helper`);
+    toast('Both sides confirmed, waiting for receiver to rate');
+    logAdmin(`[Two-way confirm] "${t.content}" confirmed by both sides, now pending rating.`, 'sys');
+  } else {
+    t.taskState = 'pending-other'; if (other) other.taskState = 'pending-me';
+    toast('Confirmed, waiting for the other side');
+    logAdmin(`[Confirm] ${m.name} confirmed "${t.content}", waiting for the other side.`, 'sys');
+  }
+  renderUser();
+}
+function findOtherAcceptedRecord(m, t){
+  const kind = t.kind || 'need';
+  const providerName = kind === 'need' ? t.acceptedBy : t.owner;
+  const receiverName = kind === 'need' ? t.owner : t.acceptedBy;
+  const otherName = (t.role === 'provider') ? receiverName : providerName;
+  const otherMember = findMember(otherName);
+  if (!otherMember) return null;
+  return otherMember.accepted.find(x=>x.id===t.id);
+}
+function openRate(taskId){
+  const m = me();
+  const t = m.accepted.find(x=>x.id===taskId); if (!t) return;
+  if (t.role !== 'receiver'){ toast('Only the receiver can rate the helper'); return; }
+  if (t.taskState !== 'pending-rate'){ toast('Rating is available after both sides confirm'); return; }
+  state.pendingRateTask = t; state.pendingRateValue = null; state.pendingRateStars = 5; state.pendingRateWould = true;
+  const kind = t.kind || 'need';
+  const providerName = kind === 'need' ? t.acceptedBy : t.owner;
+  $('#rateInfo').innerHTML = `"${t.content}"<br>You received help; the target of your rating is <b>${providerName}</b><br>Urgency: <span class="tag ${t.status}">${urgencyLabel(t.status)}</span>`;
+  $$('#rateRow .opt').forEach(o=>o.classList.remove('sel'));
+  $$('#starRow .star').forEach(s=>s.classList.remove('active'));
+  $$('#starRow .star').forEach(s=>{ if (+s.dataset.s <= 5) s.classList.add('active'); });
+  $$('#wouldRow .opt').forEach(o=>o.classList.remove('sel'));
+  $('#wouldRow .opt[data-w="yes"]').classList.add('sel');
+  $('#rateComment').value = '';
+  $('#btnConfirmRate').disabled = true;
+  updateRatePreview();
+  $('#rateMask').classList.add('show');
+}
+function updateRatePreview(){
+  const box = $('#ratePreview');
+  const rating = state.pendingRateValue;
+  if (!rating){ box.textContent = 'Please choose an overall rating first'; return; }
+  const stars = state.pendingRateStars || 5;
+  const would = state.pendingRateWould !== false;
+  const f = computeRatingFactor(rating, stars, would);
+  box.innerHTML = `Overall "${rating}" × ${RATING_FACTOR[rating]} + stars ${stars} + ${would?'would again +0.05':'would not -0.10'} = <b style="color:var(--gold);">×${f.toFixed(2)}</b>`;
+}
+function bindRate(){
+  $$('#rateRow .opt').forEach(opt=>{
+    opt.addEventListener('click', ()=>{
+      $$('#rateRow .opt').forEach(o=>o.classList.remove('sel'));
+      opt.classList.add('sel');
+      state.pendingRateValue = opt.dataset.r;
+      $('#btnConfirmRate').disabled = false;
+      updateRatePreview();
+    });
+  });
+  $$('#starRow .star').forEach(star=>{
+    star.addEventListener('click', ()=>{
+      const s = +star.dataset.s; state.pendingRateStars = s;
+      $$('#starRow .star').forEach(x=>{ x.classList.toggle('active', +x.dataset.s <= s); });
+      updateRatePreview();
+    });
+  });
+  $$('#wouldRow .opt').forEach(opt=>{
+    opt.addEventListener('click', ()=>{
+      $$('#wouldRow .opt').forEach(o=>o.classList.remove('sel'));
+      opt.classList.add('sel');
+      state.pendingRateWould = opt.dataset.w === 'yes';
+      updateRatePreview();
+    });
+  });
+  $('#btnCancelRate').addEventListener('click', ()=>{ $('#rateMask').classList.remove('show'); state.pendingRateTask = null; state.pendingRateValue = null; });
+  $('#btnConfirmRate').addEventListener('click', ()=>{
+    const t = state.pendingRateTask; const rating = state.pendingRateValue;
+    if (!t || !rating) return;
+    const clicker = me(); const owner = findMember(t.owner);
+    const kind = t.kind || 'need';
+    const provider = kind === 'need' ? findMember(t.acceptedBy) : owner;
+    const receiver = clicker;
+    if (!provider){ toast('Helper does not exist'); return; }
+    const stars = state.pendingRateStars || 5;
+    const wouldAgain = state.pendingRateWould !== false;
+    const baseAmount = [1,2,3,5][Math.floor(Math.random()*4)];
+    const factor = computeRatingFactor(rating, stars, wouldAgain);
+    const finalAmount = round1(baseAmount * STATUS_FACTOR_FN(t.status) * factor);
+    const comment = ($('#rateComment').value || '').trim();
+    const rateHits = scanBlockWords(comment);
+    if (rateHits.P0.length){ toast(`Rating contains sensitive terms: ${rateHits.P0.join(', ')} (recorded)`); logAdmin(`[Sensitive rating] ${clicker.name}'s rating to ${provider.name} contains: ${rateHits.P0.join(', ')}`, 'bad'); }
+    settleTrade(provider, receiver, t.content, t.status, rating, { base: baseAmount, stars, wouldAgain, comment });
+    const receiverRecord = clicker.accepted.find(x=>x.id===t.id);
+    const archive = { id:t.id, content:t.content, kind, owner:t.owner, acceptedBy:t.acceptedBy, status:t.status, scene:t.scene, deadlineLabel:t.deadlineLabel, rating, stars, amount:finalAmount, wouldAgain, finishedAtDay:virtualDay(), tags:t.tags };
+    provider.history = provider.history || []; receiver.history = receiver.history || [];
+    provider.history.push({ ...archive, role:'provider', otherName: clicker.name });
+    if (receiverRecord) clicker.history.push({ ...archive, role:'receiver', otherName: provider.name });
+    provider.accepted = provider.accepted.filter(x=>x.id!==t.id);
+    clicker.accepted = clicker.accepted.filter(x=>x.id!==t.id);
+    if (owner){ const orig = owner.published.find(x=>x.id===t.id); if (orig) orig.pubState = 'done'; }
+    $('#rateMask').classList.remove('show'); state.pendingRateTask = null; state.pendingRateValue = null;
+    toast(`Done! Rated "${rating}" (${stars}★)`);
+    renderAll();
+  });
+}
+function STATUS_FACTOR_FN(status){ return { 'urgent': 1.5, 'normal': 1.0, 'relaxed': 0.7 }[status] || 1.0; }
+function settleTrade(provider, receiver, label, status, rating, opt={}){
+  const baseAmount = opt.base || [1,2,3,5][Math.floor(Math.random()*4)];
+  const stars = opt.stars || 5;
+  const wouldAgain = opt.wouldAgain !== false;
+  const factor = computeRatingFactor(rating, stars, wouldAgain);
+  const finalAmount = round1(baseAmount * STATUS_FACTOR_FN(status) * factor);
+  const txDraft = { from:provider.name, to:receiver?receiver.name:'(removed)', label, status, rating, amount:finalAmount, base:baseAmount, stars, wouldAgain, kind:opt.kind||'need', vDay:virtualDay(), comment:opt.comment||'', ts:state.time.virtualNow };
+  const w = computeEffectiveWeight(txDraft, provider, receiver);
+  txDraft.suspicion = w.suspicion; txDraft.effectiveWeight = w.weight; txDraft.weightReasons = w.suspicionReasons;
+  provider.bal = round1(provider.bal + finalAmount);
+  provider.helpCount += 1; provider.totalRated += 1;
+  if (rating === 'positive') provider.goodCount += 1; else if (rating === 'neutral') provider.midCount += 1; else provider.badCount += 1;
+  provider.starSum += stars; provider.starCount += 1; provider.wouldAgainTotal += 1;
+  if (wouldAgain) provider.wouldAgainYes += 1;
+  provider.rel = round2(clamp(provider.rel + REL_DELTA[rating], REL_MIN, REL_MAX));
+  if (receiver){
+    receiver.bal = round1(receiver.bal - finalAmount); receiver.receiveCount += 1;
+    const recDelta = rating === 'negative' ? -0.02 : REL_RECEIVE_GOOD;
+    receiver.rel = round2(clamp(receiver.rel + recDelta, REL_MIN, REL_MAX));
+  }
+  applyBalanceCap(provider); if (receiver) applyBalanceCap(receiver);
+  state.txs.push(txDraft);
+  if (receiver) invalidateCredibility(receiver.name);
+  invalidateCredibility(provider.name);
+  const suspNote = w.suspicion > SUSPICION_THRESHOLD ? ` ⚠️Suspicion ${w.suspicion.toFixed(2)}` : '';
+  logAdmin(`[Exchange] ${provider.name} helped ${receiver?receiver.name:'—'} "${label}" | ${urgencyLabel(status)}×${STATUS_FACTOR_FN(status)} | ${rating}×overall ${factor.toFixed(2)} | base ${baseAmount} → ${finalAmount} pts | weight ${w.weight.toFixed(2)}${suspNote}`, rating==='negative'?'bad':(rating==='positive'?'good':''));
+  return finalAmount;
+}
+function openProfileCard(name){
+  const viewer = state.currentUser;
+  const target = findMember(name); if (!target){ toast('This member does not exist'); return; }
+  const isSelf = viewer === name;
+  const mutual = hasMutualRelation(viewer, name);
+  const active = hasActiveTaskWith(viewer, name);
+  const canSeePrivate = isSelf || mutual || active;
+  const gr = target.totalRated ? Math.round(target.goodCount / target.totalRated * 100) : '—';
+  const avgStars = target.starCount ? (target.starSum / target.starCount).toFixed(1) : '—';
+  const againRate = target.wouldAgainTotal ? Math.round(target.wouldAgainYes / target.wouldAgainTotal * 100) + '%' : '—';
+  const rank = rankLabelOf(target);
+  const reviews = state.txs.filter(t=>t.from === name).slice(-5).reverse();
+  const tagsHtml = target.skills.length ? `<div class="pcard-tags">${target.skills.map(s=>`<span class="tg">${s}</span>`).join('')}</div>` : '<div class="hint">No skill tags yet</div>';
+  const privateSection = canSeePrivate ? `
+    <div class="pcard-sec">
+      <div class="lbl">Relationship-visible info</div>
+      <div class="rows">
+        <div class="item"><span>Net contribution</span><b>${netContribution(target) >= 0 ? '+' : ''}${netContribution(target)}</b></div>
+        <div class="item"><span>Avg stars</span><b>${avgStars}${avgStars!=='—'?' / 5':''}</b></div>
+        <div class="item"><span>Would find again</span><b>${againRate}</b></div>
+        <div class="item"><span>Protection period</span><b>${target.protection.active?protectionLeftDays(target)+' d left':'No'}</b></div>
+      </div>
+      ${target.bio ? `<div style="font-size:13px;color:#555;margin-top:8px;line-height:1.7;">"${target.bio}"</div>` : ''}
+    </div>
+    ${reviews.length ? `<div class="pcard-sec"><div class="lbl">Recent ratings</div>${reviews.map(r=>`
+      <div class="pcard-review">
+        <span class="rt">${r.rating} ${r.stars||5}★</span>
+        ${r.wouldAgain===false?' · Would not find again':''}
+        ${r.suspicion > SUSPICION_THRESHOLD ? `<span class="tag suspicious">Suspicious ${(r.suspicion*100).toFixed(0)}%</span>` : ''}
+        <span style="color:#8A97A6;"> · ${r.label}</span>
+      </div>`).join('')}</div>` : ''}
+  ` : `<div class="pcard-sec"><div class="pcard-locked">🔒 Bio, net contribution, and rating summary<br>are only visible to members with an existing exchange or an ongoing task</div></div>`;
+  const activeNote = active ? `<div class="pcard-sec"><div class="lbl">Ongoing collaboration</div><div class="hint">You and this member have an ongoing task, so you can see all the info above.</div></div>` : '';
+  $('#profileCardBody').innerHTML = `
+    <div class="pcard-head">
+      <div class="av">${name.charAt(0).toUpperCase()}</div>
+      <div>
+        <div class="nm">${name}${relBadge(target.rel)?`<span class="bd">${relBadge(target.rel)}</span>`:''}${target.protection.active?'<span class="protect">🛡️ Protected</span>':''}</div>
+        <div class="hint" style="margin-top:4px;">${isSelf?'This is you':(mutual?'You have exchanged before':(active?'You are collaborating now':'Stranger'))}</div>
+      </div>
+    </div>
+    <div class="pcard-sec"><div class="lbl">Public info</div>
+      <div class="rows">
+        <div class="item"><span>Reliability</span><b>${target.rel.toFixed(2)}</b></div>
+        <div class="item"><span>Positive rate</span><b>${gr}${gr==='—'?'':'%'}</b></div>
+        <div class="item"><span>Helps</span><b>${target.helpCount} times</b></div>
+        <div class="item"><span>Receives</span><b>${target.receiveCount} times</b></div>
+      </div>
+    </div>
+    <div class="pcard-sec"><div class="lbl">Community position</div><div style="font-size:14px;color:var(--gold);font-weight:bold;">${rank.text}</div><div class="hint">Exact percentile is not public.</div></div>
+    <div class="pcard-sec"><div class="lbl">Skill tags</div>${tagsHtml}</div>
+    ${activeNote}
+    ${privateSection}
+    <div class="pcard-sec"><div class="pcard-locked" style="background:#FFF8E7;color:#8A6A0F;">🔒 Balance is private and never shared</div></div>`;
+  $('#profileCardMask').classList.add('show');
+}
+function bindProfileCard(){
+  $('#btnCloseProfileCard').addEventListener('click', ()=> $('#profileCardMask').classList.remove('show'));
+  $('#profileCardMask').addEventListener('click', e=>{ if (e.target === $('#profileCardMask')) $('#profileCardMask').classList.remove('show'); });
+}
+function renderProfile(c){
+  const m = me();
+  const gr = m.totalRated ? Math.round(m.goodCount / m.totalRated * 100) : '—';
+  const avgStars = m.starCount ? (m.starSum / m.starCount).toFixed(1) : '—';
+  const againRate = m.wouldAgainTotal ? Math.round(m.wouldAgainYes / m.wouldAgainTotal * 100) + '%' : '—';
+  const rank = rankLabelOf(m);
+  const suspiciousReceived = state.txs.filter(t => t.from === m.name && t.suspicion > SUSPICION_THRESHOLD);
+  const notis = state.notifications[m.name] || []; notis.forEach(n=>n.read = true);
+  const notiHtml = notis.length ? `
+    <div class="card"><h2>🔔 Notifications</h2>
+    ${notis.slice(0, 8).map(n=>`<div class="list-item"><div class="l"><div class="t" style="font-weight:normal;">${n.text}</div><div class="s">${n.ts}</div></div></div>`).join('')}
+    </div>` : '';
+  const myCred = computeRaterCredibility(m.name);
+  const myCredPct = Math.round(myCred.score * 100);
+  const myCredClass = myCred.score >= 0.75 ? '' : (myCred.score >= 0.5 ? 'warn' : 'bad');
+  const credCard = `
+    <div class="card"><h2>My rating credibility</h2>
+      <div class="cred-bar"><div class="bar ${myCredClass}"><div style="width:${myCredPct}%"></div></div><div class="num">${myCredPct}%</div></div>
+      <div class="hint" style="margin-top:8px;">Credibility affects how much weight your ratings carry.</div>
+      ${myCred.reasons.length ? `<div class="hint" style="color:var(--red);">${myCred.reasons.map(r=>`· ${r}`).join('<br>')}</div>` : ''}
+      ${myCred.stats && myCred.stats.n >= 3 ? `
+        <div class="list-item"><div class="l"><div class="t">Ratings given</div></div><b>${myCred.stats.n} times</b></div>
+        <div class="list-item"><div class="l"><div class="t">Std deviation</div></div><b>${myCred.stats.stdDev}</b></div>
+        <div class="list-item"><div class="l"><div class="t">Extreme rating share</div></div><b>${(myCred.stats.extremeRate*100).toFixed(0)}%</b></div>
+        <div class="list-item"><div class="l"><div class="t">Deviation from community mean</div></div><b>${myCred.stats.deviation}</b></div>
+      ` : '<div class="hint">Fewer than 3 samples, using neutral value 70%</div>'}
+    </div>`;
+  const suspiciousCard = suspiciousReceived.length ? `
+    <div class="card"><h2>⚠️ Rating status notice</h2>
+      <div class="hint">The following ratings were downweighted due to anomalies.</div>
+      ${suspiciousReceived.map(t => `
+        <div class="list-item"><div class="l">
+          <div class="t">"${t.label}" ${t.rating} ${t.stars}★</div>
+          <div class="s">Suspicion ${(t.suspicion*100).toFixed(0)}% · effective weight ${(t.effectiveWeight*100).toFixed(0)}%${t.weightReasons && t.weightReasons.length ? ` · ${t.weightReasons.join(', ')}` : ''}</div>
+        </div></div>`).join('')}
+    </div>` : '';
+  c.innerHTML = `
+    ${notiHtml}
+    <div class="profile-head">
+      <div class="avatar">${m.name.charAt(0).toUpperCase()}</div>
+      <div class="name">${m.name}</div>
+      <div class="badge">${relBadge(m.rel)}</div>
+      ${m.protection.active?`<div class="protect">🛡️ Protection · ${protectionLeftDays(m)} d left</div>`:''}
+      <div class="rank">🏅 Community position: ${rank.text}</div>
+      <div class="stat-grid">
+        <div class="st"><div class="num">${m.rel.toFixed(2)}</div><div class="lb">Reliability</div></div>
+        <div class="st"><div class="num">${m.bal}</div><div class="lb">Loop points</div></div>
+        <div class="st"><div class="num">${gr}${gr==='—'?'':'%'}</div><div class="lb">Positive rate</div></div>
+      </div>
+    </div>
+    ${credCard}${suspiciousCard}
+    <div class="card">
+      <h2>My community position</h2>
+      <div class="list-item"><div class="l"><div class="t">Current rank</div></div><b style="color:var(--gold);">${rank.text}</b></div>
+      <div class="hint">Reliability 0.40 + Stars 0.40 + Activity 0.20.</div>
+      <div class="list-item" style="margin-top:8px;"><div class="l"><div class="t">Reliability sub-score</div></div><b>${relScoreOf(m).toFixed(2)}</b></div>
+      <div class="list-item"><div class="l"><div class="t">Stars sub-score</div></div><b>${starScoreOf(m).toFixed(2)}</b></div>
+      <div class="list-item"><div class="l"><div class="t">Activity sub-score</div></div><b>${activityScoreOf(m).toFixed(2)}</b></div>
+    </div>
+    <div class="card">
+      <h2>Exchange stats</h2>
+      <div class="list-item"><div class="l"><div class="t">Helped others</div></div><b>${m.helpCount} times</b></div>
+      <div class="list-item"><div class="l"><div class="t">Received help</div></div><b>${m.receiveCount} times</b></div>
+      <div class="list-item"><div class="l"><div class="t">Net contribution</div></div><b style="color:${netContribution(m)>=0?'var(--green)':'var(--red)'};">${netContribution(m) >= 0 ? '+' : ''}${netContribution(m)}</b></div>
+      <div class="list-item"><div class="l"><div class="t">Avg quality score</div></div><b>${avgStars} ${avgStars!=='—'?'/ 5':''}</b></div>
+      <div class="list-item"><div class="l"><div class="t">Would find again</div></div><b>${againRate}</b></div>
+    </div>
+    <div class="card">
+      <h2>Personal bio</h2>
+      <label>Bio</label>
+      <textarea id="meBio" maxlength="80">${m.bio}</textarea>
+      <label>Skill tags (comma separated)</label>
+      <input id="meSkills" type="text" value="${m.skills.join(', ')}" maxlength="60">
+      <button class="btn btn-primary btn-block" id="btnSaveProfile" style="margin-top:14px;">Save</button>
+    </div>`;
+  $('#btnSaveProfile').addEventListener('click', ()=>{
+    m.bio = $('#meBio').value.trim();
+    m.skills = $('#meSkills').value.split(/[,]/).map(s=>s.trim()).filter(Boolean);
+    toast('Saved');
+  });
+}
+
+/* ========== Admin ========== */
+function logAdmin(msg, cls=''){
+  const logEl = $('#log'); if (!logEl) return;
+  const d = document.createElement('div');
+  if (cls) d.className = cls;
+  d.textContent = msg;
+  logEl.appendChild(d);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+function renderAdmin(){
+  renderAdminTables(); renderRankHist(); renderAIInsights(); renderDataPanel(); renderReportQueue(); renderDictPanel();
+}
+function renderDictPanel(){
+  const box = $('#dictPanel'); if (!box) return;
+  const skillRows = Object.entries(SKILL_DICT).map(([k, arr]) =>
+    `<div style="font-size:12px;padding:4px 0;border-bottom:1px dashed #F0F3F7;display:flex;justify-content:space-between;"><b>${k}</b><span style="color:#8A97A6;font-size:11px;">${arr.slice(0,3).join(' / ')}…</span></div>`
+  ).join('');
+  const sceneRows = Object.entries(SCENE_DICT).filter(([k,v])=>v.length).map(([k, arr]) =>
+    `<div style="font-size:12px;padding:4px 0;border-bottom:1px dashed #F0F3F7;display:flex;justify-content:space-between;"><b>${k}</b><span style="color:#8A97A6;font-size:11px;">${arr.slice(0,3).join(' / ')}…</span></div>`
+  ).join('');
+  const blockRows = Object.entries(BLOCK_P0).map(([k, arr]) =>
+    `<div style="font-size:12px;padding:4px 0;border-bottom:1px dashed #F0F3F7;display:flex;justify-content:space-between;"><b>P0 · ${k}</b><span style="color:#8A97A6;font-size:11px;">${arr.slice(0,3).join(' / ')}…</span></div>`
+  ).join('');
+  box.innerHTML = `
+    <div><h3 style="font-size:12px;color:#7A8798;margin-bottom:8px;">Skill tags (${Object.keys(SKILL_DICT).length})</h3>${skillRows}</div>
+    <div><h3 style="font-size:12px;color:#7A8798;margin-bottom:8px;">Scene tags (${Object.keys(SCENE_DICT).length})</h3>${sceneRows}<h3 style="font-size:12px;color:#7A8798;margin:12px 0 8px;">Blocklist (P0)</h3>${blockRows}</div>`;
+}
+function renderRankHist(){
+  const box = $('#rankHist'); if (!box) return;
+  const sorted = [...state.members].sort((a,b)=> totalScoreOf(b) - totalScoreOf(a));
+  const top = sorted.slice(0, 15);
+  let html = '<div class="header-row"><span>#</span><span>Member</span><span style="text-align:right;">Reliability×0.4</span><span style="text-align:right;">Stars×0.4</span><span style="text-align:right;">Activity×0.2</span><span style="text-align:right;">Total</span></div>';
+  top.forEach((m, i) => {
+    const relS = relScoreOf(m), starS = starScoreOf(m), actS = activityScoreOf(m);
+    const total = relS * RANK_W.rel + starS * RANK_W.star + actS * RANK_W.activity;
+    const rankCls = i === 0 ? 'top1' : (i === 1 ? 'top2' : (i === 2 ? 'top3' : ''));
+    const pTag = m.protection.active ? ' 🛡️' : '';
+    html += `<div class="rank-row-item ${rankCls}"><span class="rk">#${i+1}</span><span class="nm">${m.name}${pTag}</span>
+      <span class="cell mini-rel"><span class="v">${relS.toFixed(2)}</span><div class="mini"><div style="width:${(relS*100).toFixed(0)}%"></div></div></span>
+      <span class="cell mini-star"><span class="v">${starS.toFixed(2)}</span><div class="mini"><div style="width:${(starS*100).toFixed(0)}%"></div></div></span>
+      <span class="cell mini-act"><span class="v">${actS.toFixed(2)}</span><div class="mini"><div style="width:${(actS*100).toFixed(0)}%"></div></div></span>
+      <span class="tot">${total.toFixed(3)}</span></div>`;
+  });
+  html += `<div class="rank-legend"><span>📐 Total = </span><span class="r">Reliability × 0.40</span><span class="sep">+</span><span class="s">Stars × 0.40</span><span class="sep">+</span><span class="a">Activity × 0.20</span><span style="margin-left:auto;color:#98A4B3;">Stars = most recent 3 at 60% + history at 40%</span></div>`;
+  box.innerHTML = html;
+}
+function renderReportQueue(){
+  const box = $('#reportQueue'); if (!box) return;
+  const pending = state.reports.filter(r=>r.status === 'pending');
+  $('#reportCount').textContent = `${pending.length} pending`;
+  if (!state.reports.length){ box.innerHTML = '<div class="hint">No reports</div>'; return; }
+  box.innerHTML = state.reports.slice().reverse().map(r=>{
+    const statusTag = r.status === 'pending' ? '<span class="tag pending-review">Pending</span>' : (r.status === 'taken-down' ? '<span class="tag taken-down">Taken down</span>' : '<span class="tag done">Dismissed</span>');
+    return `
+      <div class="review-row">
+        <div class="rv-head">⚑ ${r.reason} · ${r.taskOwner}'s post</div>
+        <div class="rv-body">Content: "${r.taskContent}"<br>Reporter: ${r.reporter} · Day ${r.ts}${r.comment?` · Note: ${r.comment}`:''}</div>
+        <div class="rv-actions">${statusTag}
+          ${r.status === 'pending' ? `<button class="btn btn-red btn-sm" data-rc-takedown="${r.id}">Take down</button><button class="btn btn-gray btn-sm" data-rc-reject="${r.id}">Dismiss</button>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+  box.querySelectorAll('[data-rc-takedown]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const r = state.reports.find(x=>x.id===btn.dataset.rcTakedown); if (!r) return;
+      r.status = 'taken-down';
+      const found = findTaskById(r.taskId);
+      if (found){ found.task.pubState = 'removed'; pushNotification(found.task.owner, `🚫 Your post "${found.task.content}" was taken down for a violation`); }
+      logAdmin(`[Review] Took down "${r.taskContent}" (reported by ${r.reporter})`, 'bad');
+      toast('Taken down'); renderAll();
+    });
+  });
+  box.querySelectorAll('[data-rc-reject]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const r = state.reports.find(x=>x.id===btn.dataset.rcReject); if (!r) return;
+      r.status = 'dismissed';
+      const found = findTaskById(r.taskId);
+      if (found){ found.task.reported = false; pushNotification(found.task.owner, `✅ Your post "${found.task.content}" was reviewed and found compliant, shown again`); }
+      logAdmin(`[Review] Dismissed the report on "${r.taskContent}".`, 'sys');
+      toast('Report dismissed, content restored'); renderAll();
+    });
+  });
+}
+function renderAdminTables(){
+  const lb = document.querySelector('#ledgerTbl tbody');
+  if (lb){
+    const sorted = [...state.members].sort((a,b)=> totalScoreOf(b) - totalScoreOf(a));
+    const show = sorted.slice(0, 100);
+    lb.innerHTML = show.map(m=>{
+      const cls = m.bal>0?'pos':(m.bal<0?'neg':'');
+      const canDel = state.members.length > 2;
+      const pDays = protectionLeftDays(m);
+      const pTag = m.protection.active ? `<span class="tag ${pDays<=3?'protect-warn':'protected'}">🛡️${pDays}d</span>` : '';
+      const avgStars = m.starCount ? (m.starSum / m.starCount).toFixed(1) : '—';
+      const rank = rankLabelOf(m);
+      const act = activityScoreOf(m);
+      const cred = getCredibility(m.name);
+      const credPct = Math.round(cred * 100);
+      const credTag = cred < 0.5 ? `<span class="tag low-cred">${credPct}%</span>` : `${credPct}%`;
+      return `<tr>
+        <td><span class="name-link" data-view-card="${m.name}">${m.name}</span> ${pTag}</td>
+        <td class="${cls}">${m.bal}</td>
+        <td>${m.rel.toFixed(2)}</td>
+        <td>${avgStars}</td>
+        <td>${act.toFixed(2)}</td>
+        <td>${credTag}</td>
+        <td><span class="tag ${rank.cls}">${rank.text}</span></td>
+        <td>${m.protection.active ? `<button class="btnDel" data-unprotect="${m.name}" style="background:var(--gold);">End early</button> ` : ''}<button class="btnDel" data-del="${m.name}" ${canDel?'':'disabled'}>Remove</button></td>
+      </tr>`;
+    }).join('');
+    if (state.members.length > 100) lb.innerHTML += `<tr><td colspan="8" style="text-align:center;color:#98A4B3;">Showing first 100 members (${state.members.length} total)</td></tr>`;
+  }
+  const tb = document.querySelector('#txTbl tbody');
+  if (tb){
+    tb.innerHTML = state.txs.slice(-20).reverse().map(t=>{
+      const w = t.effectiveWeight !== undefined ? t.effectiveWeight : 1;
+      const wTag = w < 0.6 ? `<span class="tag suspicious">${(w*100).toFixed(0)}%</span>` : `${(w*100).toFixed(0)}%`;
+      return `<tr>
+        <td>${t.from}</td><td>${t.to}</td><td>${t.label}</td>
+        <td><span class="tag ${t.status}">${urgencyLabel(t.status)}</span></td>
+        <td><span class="tag ${t.rating}">${t.rating}</span></td>
+        <td>${t.stars||'—'}★</td><td>${wTag}</td><td>${t.amount}</td>
+      </tr>`;
+    }).join('');
+  }
+}
+function computeAIInsights(){
+  const out = [];
+  const ps = state.members.map(m=>percentileOf(m));
+  const avg = ps.reduce((a,b)=>a+b,0) / (ps.length || 1);
+  out.push({ ico:'🏅', cls:'',      text:`Community has <b>${state.members.length}</b> members, average percentile <b>${avg.toFixed(0)}%</b>.` });
+  const pendingReports = state.reports.filter(r=>r.status === 'pending').length;
+  if (pendingReports) out.push({ ico:'⚖️', cls:'red', text:`<b>${pendingReports}</b> reports pending review.` });
+  state.members.map(m => ({ name:m.name, cred:getCredibility(m.name), stats:getCredStats(m.name) }))
+    .filter(x => x.cred < 0.5 && x.stats && x.stats.n >= 3).slice(0,3)
+    .forEach(x => { out.push({ ico:'🔍', cls:'red', text:`<b>${x.name}</b> has low rating credibility (${(x.cred*100).toFixed(0)}%).` }); });
+  const suspiciousTxs = state.txs.filter(t => t.suspicion > SUSPICION_THRESHOLD).slice(-3);
+  if (suspiciousTxs.length){
+    const names = [...new Set(suspiciousTxs.map(t => t.from))].slice(0, 3);
+    out.push({ ico:'⚠️', cls:'red', text:`Detected <b>${suspiciousTxs.length}</b> suspicious ratings (involving ${names.join(', ')}).` });
+  }
+  let pdCount = 0;
+  state.members.forEach(m=>{
+    const pd = protectionLeftDays(m);
+    if (m.protection.active && pd <= 5 && pdCount < 3){ out.push({ ico:'🛡️', cls:'gold', text:`<b>${m.name}</b>'s protection period has ${pd} day(s) left.` }); pdCount++; }
+  });
+  const active = [...state.members].sort((a,b)=>(b.helpCount+b.receiveCount)-(a.helpCount+a.receiveCount))[0];
+  if (active && (active.helpCount + active.receiveCount) >= 3) out.push({ ico:'⭐', cls:'green', text:`Most active: <b>${active.name}</b>.` });
+  const topRel = [...state.members].sort((a,b)=>b.rel-a.rel)[0];
+  if (topRel && topRel.rel >= 0.9) out.push({ ico:'💎', cls:'gold', text:`Highest reliability: <b>${topRel.name}</b> (${topRel.rel.toFixed(2)}).` });
+  if (state.time.enabled) out.push({ ico:'⏱️', cls:'', text:`Time mode running, current day <b>${virtualDay()}</b>.` });
+  return out;
+}
+function renderAIInsights(){
+  const box = $('#aiInsights'); if (!box) return;
+  const insights = computeAIInsights();
+  if (!insights.length){ box.innerHTML = '<div class="hint">AI observing…</div>'; return; }
+  box.innerHTML = insights.map(i=>`<div class="ai ${i.cls||''}"><span class="ico">${i.ico}</span><span>${i.text}</span></div>`).join('');
+}
+function updateAI(){ if (state.view === 'admin') renderAIInsights(); }
+
+/* ============ Data Panel live ============ */
+let _dpBuilt = false, _dpSig = '', _dpTimer = null;
+function renderDataPanel(force){
+  const box = $('#dataPanel'); if (!box) return;
+  if (!_dpBuilt){ dpBuild(); dpStartLoop(); }
+  const s = dpStats();
+  dpSetNumber('dpK1', s.totalTx, 'dpD1', s.totalTx ? `${s.windowCount} in ${ACTIVITY_WINDOW_DAYS}d` : 'awaiting first exchange');
+  dpSetNumber('dpK2', `${s.activeNodes}/${s.memberCount}`, 'dpD2', s.memberCount ? Math.round(s.activeNodes / s.memberCount * 100) + '% engaged' : '—');
+  dpSetNumber('dpK3', s.pairCount, 'dpD3', 'mutual edges');
+  dpSetNumber('dpK4', s.skillKinds, 'dpD4', s.skillFromTags ? 'from live tags' : 'from profiles');
+  dpSetNumber('dpK5', s.todayCount, 'dpD5', `Day ${virtualDay()}`);
+  const liveTxt = document.getElementById('dpLiveTxt');
+  if (liveTxt){
+    const last = state.txs[state.txs.length - 1];
+    liveTxt.textContent = last ? `LIVE · last: ${last.from} → ${last.to} · ${last.rating} · ${last.amount} pts (Day ${last.vDay})` : 'LIVE · awaiting first exchange in the loop…';
+  }
+  const sig = JSON.stringify([s.totalTx, s.todayCount, s.activeNodes, s.pairCount, s.skillKinds, s.idle.map(i=>i.name+i.value), s.bridges.map(b=>b.name+b.value), s.series]);
+  if (!force && sig === _dpSig) return;
+  _dpSig = sig;
+  const idleBox = document.getElementById('dpIdle');
+  if (idleBox) idleBox.innerHTML = s.idle.map(i=>`<div class="row"><span style="color:${i.value<=1?'var(--red)':'#444'};">${i.name}</span><span>${i.value} ×</span></div><div class="bar"><div style="width:${Math.max(3, Math.round(i.value/s.maxAct*100))}%"></div></div>`).join('');
+  const spark = document.getElementById('dpSpark');
+  if (spark){ const mx = Math.max(1, ...s.series); spark.innerHTML = s.series.map(v=>`<i style="height:${Math.max(8, Math.round(v/mx*100))}%" title="${v} exchanges"></i>`).join(''); }
+  const skillBox = document.getElementById('dpSkills');
+  if (skillBox){
+    if (!s.skillTop.length) skillBox.innerHTML = '<div class="hint">No skill tags yet</div>';
+    else { const mx = Math.max(1, ...s.skillTop.map(x=>x[1])); skillBox.innerHTML = s.skillTop.map(([name,c])=>`<div class="row"><span>${name}</span><span>${c} task${c>1?'s':''}</span></div><div class="bar"><div style="width:${Math.max(6, Math.round(c/mx*100))}%;background:var(--gold);"></div></div>`).join(''); }
+  }
+  const bBox = document.getElementById('dpBridges');
+  if (bBox){
+    if (!s.bridges.length) bBox.innerHTML = '<div class="hint">No exchange yet</div>';
+    else { const mx = Math.max(1, ...s.bridges.map(b=>b.value)); bBox.innerHTML = s.bridges.map((b,i)=>`<div class="row"><span>${i===0?'💎 ':''}${b.name}</span><span>${b.value} ×</span></div><div class="bar"><div style="width:${Math.max(6, Math.round(b.value/mx*100))}%;background:var(--green);"></div></div>`).join(''); }
+  }
+}
+function dpBuild(){
+  const box = $('#dataPanel'); if (!box) return;
+  box.innerHTML = `
+    <div class="dp-wrap">
+      <div class="dp-live" id="dpLiveTxt">LIVE · awaiting first exchange in the loop…</div>
+      <div class="dp-kpis">
+        <div class="dp-kpi" id="dpK1"><div class="dp-kv">0</div><div class="dp-kl">Total exchanges</div><div class="dp-kd" id="dpD1">—</div></div>
+        <div class="dp-kpi" id="dpK2"><div class="dp-kv">0/0</div><div class="dp-kl">Active nodes</div><div class="dp-kd" id="dpD2">—</div></div>
+        <div class="dp-kpi" id="dpK3"><div class="dp-kv">0</div><div class="dp-kl">Mutual edges</div><div class="dp-kd" id="dpD3">—</div></div>
+        <div class="dp-kpi" id="dpK4"><div class="dp-kv">0</div><div class="dp-kl">Skill kinds</div><div class="dp-kd" id="dpD4">—</div></div>
+        <div class="dp-kpi" id="dpK5"><div class="dp-kv">0</div><div class="dp-kl">Today's exchanges</div><div class="dp-kd" id="dpD5">—</div></div>
+      </div>
+      <div class="dp-block"><div class="dp-block-t">📈 Exchange pulse · last 14 days</div><div class="dp-spark" id="dpSpark"></div></div>
+      <div class="dp-grid3">
+        <div class="dp-block"><div class="dp-block-t">🏝️ Idle resources</div><div id="dpIdle"></div></div>
+        <div class="dp-block"><div class="dp-block-t">🔥 Skill heatmap</div><div id="dpSkills"></div></div>
+        <div class="dp-block"><div class="dp-block-t">🌉 Bridge nodes</div><div id="dpBridges"></div></div>
+      </div>
+      <div class="hint" style="margin-top:10px;padding-top:8px;border-top:1px dashed #EFF2F6;">
+        For campus/estate operators: idle-resource maps optimize shared allocation, skill heatmaps guide activity planning, and bridge nodes identify core contributors.
+      </div>
+    </div>`;
+  _dpBuilt = true;
+}
+function dpStats(){
+  const members = state.members || [], txs = state.txs || [];
+  const today = virtualDay(), fromDay = today - ACTIVITY_WINDOW_DAYS;
+  const totalTx = txs.length;
+  const windowCount = txs.filter(t=>t.vDay >= fromDay).length;
+  const todayCount = txs.filter(t=>t.vDay === today).length;
+  const activeSet = new Set();
+  txs.filter(t=>t.vDay >= fromDay).forEach(t=>{ activeSet.add(t.from); activeSet.add(t.to); });
+  const activeNodes = members.filter(m=>activeSet.has(m.name)).length;
+  const pairSet = new Set();
+  txs.forEach(t=>{ if (!t.from || !t.to || t.from === t.to) return; pairSet.add([t.from,t.to].sort().join('|')); });
+  const pairCount = pairSet.size;
+  const skillCount = {}; let skillFromTags = false;
+  members.forEach(m=>{ (m.published||[]).forEach(t=>{ if (t.tags && t.tags.skills && t.tags.skills.length){ t.tags.skills.forEach(s=>{ skillCount[s] = (skillCount[s]||0)+1; }); skillFromTags = true; } }); });
+  if (!skillFromTags) members.forEach(m=>(m.skills||[]).forEach(s=>{ if (!s) return; skillCount[s] = (skillCount[s]||0)+1; }));
+  const skillAll = Object.entries(skillCount).sort((a,b)=>b[1]-a[1]);
+  const idle = members.map(m=>({ name:m.name, value:(m.helpCount||0)+(m.receiveCount||0) })).sort((a,b)=>a.value-b.value).slice(0,5);
+  const maxAct = Math.max(1, ...idle.map(i=>i.value));
+  const degree = {}; members.forEach(m=>degree[m.name] = 0);
+  txs.forEach(t=>{ if (degree[t.from]!==undefined) degree[t.from]++; if (degree[t.to]!==undefined) degree[t.to]++; });
+  const bridges = Object.entries(degree).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([name,value])=>({name,value}));
+  const series = []; for (let i=13;i>=0;i--){ const d = today - i; series.push(txs.filter(t=>t.vDay === d).length); }
+  return { totalTx, windowCount, todayCount, activeNodes, memberCount:members.length, pairCount, skillKinds:skillAll.length, skillTop:skillAll.slice(0,6), skillFromTags, idle, maxAct, bridges, series };
+}
+function dpSetNumber(kpiId, value, detailId, detailText){
+  const kpi = document.getElementById(kpiId); if (!kpi) return;
+  const vEl = kpi.querySelector('.dp-kv'), dEl = document.getElementById(detailId);
+  const strVal = String(value);
+  if (vEl && vEl.textContent !== strVal){
+    vEl.textContent = strVal; kpi.classList.remove('pulse'); void kpi.offsetWidth; kpi.classList.add('pulse');
+  }
+  if (dEl && detailText !== undefined) dEl.textContent = detailText;
+}
+function dpStartLoop(){
+  if (_dpTimer) return;
+  _dpTimer = setInterval(()=>{
+    if (state.view !== 'admin') return;
+    const box = $('#dataPanel'); if (!box || !box.offsetParent) return;
+    renderDataPanel(false);
+  }, 1200);
+}
+
+/* ========== Auto-generate task ========== */
+function renderAutoTaskTplList(){
+  const list = $('#autoTaskTplList');
+  const arr = state.autoTaskType === 'squad' ? TASK_TEMPLATES_SQUAD : TASK_TEMPLATES_NORMAL;
+  list.innerHTML = arr.map((t, i) => `<div class="tpl-item ${state.autoTaskTplSel===i?'sel':''}" data-i="${i}"><div class="tpl-c">${t.content}</div><div class="tpl-m">${t.quota ? `Slots ${t.quota} · ` : ''}${t.hours<24?t.hours+' h':Math.round(t.hours/24)+' d'} · Scene ${t.scene}</div></div>`).join('');
+  list.querySelectorAll('.tpl-item').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      state.autoTaskTplSel = parseInt(el.dataset.i, 10);
+      const tpl = arr[state.autoTaskTplSel];
+      const hours = tpl.hours;
+      if (hours < 24){ $('#autoTaskNum').value = hours; $('#autoTaskUnit').value = 'hour'; }
+      else { $('#autoTaskNum').value = Math.round(hours/24); $('#autoTaskUnit').value = 'day'; }
+      if (tpl.quota) $('#autoTaskQuota').value = tpl.quota;
+      updateAutoTaskPreview(); renderAutoTaskTplList();
+    });
+  });
+}
+function updateAutoTaskPreview(){ $('#autoTaskPreview').innerHTML = formatDeadlinePreview($('#autoTaskNum').value, $('#autoTaskUnit').value); }
+function openAutoTask(){
+  $('#autoTaskOwner').innerHTML = state.members.map(m=>`<option value="${m.name}">${m.name}</option>`).join('');
+  state.autoTaskType = 'normal'; state.autoTaskTplSel = -1;
+  $$('#autoTaskType .tt').forEach(o=>o.classList.remove('active'));
+  $('#autoTaskType .tt[data-t="normal"]').classList.add('active');
+  $('#autoTaskQuotaLabel').style.display = 'none';
+  $('#autoTaskQuota').style.display = 'none';
+  $('#autoTaskQuotaHint').style.display = 'none';
+  $('#autoTaskQuota').value = 1;
+  renderAutoTaskTplList(); updateAutoTaskPreview();
+  $('#autoTaskMask').classList.add('show');
+}
+function confirmAutoTask(){
+  const ownerName = $('#autoTaskOwner').value;
+  const ownerM = findMember(ownerName);
+  if (!ownerM){ toast('Member does not exist'); return; }
+  if (state.autoTaskTplSel < 0){ toast('Please choose a template'); return; }
+  const num = Math.max(1, parseInt($('#autoTaskNum').value, 10) || 1);
+  const unit = $('#autoTaskUnit').value;
+  const deadlineAt = deadlineFromInput(num, unit);
+  if (state.autoTaskType === 'squad'){
+    const tpl = TASK_TEMPLATES_SQUAD[state.autoTaskTplSel];
+    const tags = extractTags(tpl.content + ' ' + tpl.scene, tpl.scene);
+    const quotaFromInput = Math.max(1, Math.min(20, parseInt($('#autoTaskQuota').value, 10) || tpl.quota || 1));
+    state.scarcePools.unshift({ id:'SC'+Date.now(), owner:ownerName, title:tpl.content, quota:quotaFromInput, desc:'', deadlineAt, deadlineHours:unit==='hour'?num:num*24, createdAt:'Just now', pubState:'open', applicants:[], winners:[], losers:[], resultsPublished:false, tags, isSquad:true, autoGenerated:true });
+    logAdmin(`[Auto · squad] Generated a squad call "${tpl.content}" for ${ownerName} (slots ${quotaFromInput} · ${num} ${unit==='hour'?'hour(s)':'day(s)'})`, 'gold');
+    toast('Generated a squad call for ' + ownerName);
+  } else {
+    const tpl = TASK_TEMPLATES_NORMAL[state.autoTaskTplSel];
+    const tags = extractTags(tpl.content + ' ' + tpl.scene, tpl.scene);
+    ownerM.published.unshift({ id:'A'+Date.now(), owner:ownerName, kind:'need', content:tpl.content, status:statusFromDeadline(deadlineAt), scene:tpl.scene, createdAt:'Just now', pubState:'awaiting', deadlineLabel:unit==='hour'?`within ${num} h`:`within ${num} d`, deadlineHours:unit==='hour'?num:num*24, deadlineAt, tags, autoGenerated:true });
+    logAdmin(`[Auto · normal] Generated a task "${tpl.content}" for ${ownerName}.`, 'gold');
+    toast('Generated a task for ' + ownerName);
+  }
+  $('#autoTaskMask').classList.remove('show');
+  renderAll();
+}
+function bindAutoTask(){
+  $('#btnAutoTask').addEventListener('click', ()=> openAutoTask());
+  $('#btnCancelAutoTask').addEventListener('click', ()=> $('#autoTaskMask').classList.remove('show'));
+  $('#btnConfirmAutoTask').addEventListener('click', ()=> confirmAutoTask());
+  $$('#autoTaskType .tt').forEach(tt=>{
+    tt.addEventListener('click', ()=>{
+      $$('#autoTaskType .tt').forEach(o=>o.classList.remove('active'));
+      tt.classList.add('active');
+      state.autoTaskType = tt.dataset.t; state.autoTaskTplSel = -1;
+      renderAutoTaskTplList();
+      const showQuota = state.autoTaskType === 'squad';
+      $('#autoTaskQuotaLabel').style.display = showQuota ? '' : 'none';
+      $('#autoTaskQuota').style.display     = showQuota ? '' : 'none';
+      $('#autoTaskQuotaHint').style.display = showQuota ? '' : 'none';
+    });
+  });
+  $('#autoTaskNum').addEventListener('input', updateAutoTaskPreview);
+  $('#autoTaskUnit').addEventListener('change', updateAutoTaskPreview);
+}
+function bindAdminButtons(){
+  $('#btnRandomTrade').addEventListener('click', ()=>{
+    const n = 1 + Math.floor(Math.random() * 5);
+    for (let i=0;i<n;i++) autoGenerateTrade();
+    renderAll();
+  });
+  $('#btnAddRole').addEventListener('click', ()=>{
+    $('#newRoleName').value = '';
+    $$('#newRoleProtect .opt').forEach(o=>o.classList.remove('sel'));
+    $('#newRoleProtect .opt[data-d="30"]').classList.add('sel');
+    $('#addRoleMask').classList.add('show');
+    $('#newRoleName').focus();
+  });
+  $$('#newRoleProtect .opt').forEach(opt=>{
+    opt.addEventListener('click', ()=>{
+      $$('#newRoleProtect .opt').forEach(o=>o.classList.remove('sel'));
+      opt.classList.add('sel');
+    });
+  });
+  $('#btnCancelAddRole').addEventListener('click', ()=> $('#addRoleMask').classList.remove('show'));
+  $('#btnConfirmAddRole').addEventListener('click', ()=>{
+    const name = $('#newRoleName').value.trim();
+    const protectOpt = $('#newRoleProtect .opt.sel');
+    const protectDays = protectOpt ? parseInt(protectOpt.dataset.d, 10) : 30;
+    if (!name){ alert('Please enter a name'); return; }
+    if (state.members.some(m=>m.name===name)){ alert('That name already exists'); return; }
+    const m = makeMember(name, 0.70, protectDays);
+    state.members.push(m);
+    const median = currentMedian();
+    const target = clamp(median * 1.05, 0.40, 0.90);
+    setTargetScore(m, target);
+    $('#addRoleMask').classList.remove('show');
+    logAdmin(`[New member] ${name}.`, 'sys');
+    toast(`Added role ${name}`);
+    renderAll();
+  });
+  $('#newRoleName').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#btnConfirmAddRole').click(); });
+  $('#btnReset').addEventListener('click', ()=>{
+    if (!confirm('Reset all data? This cannot be undone.')) return;
+    state.txs = []; state.notifications = {}; state.scarcePools = []; state.reports = []; state.lastDecayDay = 0;
+    state.members.forEach(m=>{
+      m.bal=0; m.helpCount=0; m.receiveCount=0; m.goodCount=0; m.midCount=0; m.badCount=0; m.totalRated=0;
+      m.starSum=0; m.starCount=0; m.wouldAgainYes=0; m.wouldAgainTotal=0;
+      m.published=[]; m.accepted=[]; m.history=[];
+      m.protection = { active:false, expiresAt:0, durationDays:0 };
+      m._credibility = null; m._credStats = null;
+    });
+    $('#log').innerHTML = '';
+    logAdmin('[System] Data has been reset.', 'sys');
+    renderAll();
+  });
+}
+function performUnwind(memberName){
+  const m = findMember(memberName); if (!m) return;
+  logAdmin(`[Exit] ${memberName} has left; balance and ranking are removed and the community re-ranks.`, 'sys');
+  state.members = state.members.filter(x => x.name !== memberName);
+  if (state.currentUser === memberName) state.currentUser = state.members[0] ? state.members[0].name : null;
+  renderAll();
+}
+function bindDeleteRole(){
+  document.querySelector('#ledgerTbl').addEventListener('click', e=>{
+    const unprotectName = e.target.getAttribute && e.target.getAttribute('data-unprotect');
+    if (unprotectName){
+      const m = findMember(unprotectName);
+      if (m && m.protection.active){
+        m.protection.active = false;
+        logAdmin(`[Protection] Ended the protection for ${unprotectName} early.`, 'sys');
+        renderAll();
+      }
+      return;
+    }
+    const name = e.target.getAttribute && e.target.getAttribute('data-del');
+    if (!name) return;
+    if (state.members.length <= 2){ logAdmin('[Notice] At least 2 members must remain.', 'bad'); return; }
+    const m = findMember(name); if (!m) return;
+    const hasActive = m.published.some(t=>t.pubState==='accepted') || m.accepted.some(t=>['in-progress','pending-me','pending-other','pending-rate'].includes(t.taskState));
+    if (hasActive){ logAdmin(`[Remove] ${name} has ongoing tasks, cannot be removed.`, 'bad'); toast('This member has ongoing tasks'); return; }
+    performUnwind(name);
+  });
+}
+function bindTabs(){
+  $$('#tabbar .tab').forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      if (!state.currentUser){ toast('Please choose a role first'); return; }
+      state.userTab = tab.dataset.tab;
+      renderUser();
+      const sel = $('#roleSelect'); if (sel) fillRoleSelect(sel, state.currentUser);
+    });
+  });
+}
+function generateNames(count){
+  const used = new Set(state.members.map(m=>m.name));
+  const pool = [...NAME_POOL].filter(n=>!used.has(n));
+  const result = [];
+  for (let i=pool.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  for (const n of pool){ if (result.length >= count) break; if (!used.has(n)){ result.push(n); used.add(n); } }
+  let suffixLen = 2, guard = 0;
+  while (result.length < count && guard < 100000){
+    guard++;
+    const base = NAME_POOL[Math.floor(Math.random() * NAME_POOL.length)];
+    const num = Math.floor(Math.random() * Math.pow(10, suffixLen)).toString().padStart(suffixLen, '0');
+    const candidate = base + num;
+    if (!used.has(candidate)){ result.push(candidate); used.add(candidate); }
+    if (result.length < count && suffixLen === 2 && used.size > NAME_POOL.length + 9000) suffixLen = 3;
+  }
+  return result;
+}
+function setSeedScores(m, relScore, starScore, actScore){
+  const total = 5;
+  let mid = clamp(Math.round(2 * total * (1 - relScore)), 0, total);
+  const good = total - mid, bad = 0;
+  const targetAvg = 1 + 4 * starScore;
+  m.goodCount = good; m.midCount = mid; m.badCount = bad;
+  m.totalRated = total; m.starSum = Math.round(targetAvg * total); m.starCount = total;
+  m.helpCount = total; m.wouldAgainTotal = total; m.wouldAgainYes = Math.round(total * relScore);
+  m.seedAlign = true;
+}
+function currentMedian(){
+  if (!state.members.length) return 0.60;
+  const scores = state.members.map(m => totalScoreOf(m)).sort((a,b)=>a-b);
+  return scores[Math.floor(scores.length / 2)];
+}
+function setTargetScore(m, target){
+  const actS = 0.30;
+  const remaining = target - RANK_W.activity * actS;
+  const each = clamp(remaining / (RANK_W.rel + RANK_W.star), 0.30, 0.95);
+  setSeedScores(m, each, each, actS);
+}
+function openBatchAdd(){
+  $('#batchCount').value = 50;
+  $$('#batchMode .opt').forEach(o=>o.classList.remove('sel'));
+  $('#batchMode .opt[data-m="community"]').classList.add('sel');
+  $$('#batchProtect .opt').forEach(o=>o.classList.remove('sel'));
+  $('#batchProtect .opt[data-d="0"]').classList.add('sel');
+  $('#batchCommunityOpts').style.display = '';
+  $('#batchNewbieOpts').style.display = 'none';
+  $('#batchModeHint').textContent = 'Simulated community members: each is scattered across rank bands to widen the community.';
+  $('#batchAddMask').classList.add('show');
+}
+function bindBatchAdd(){
+  $('#btnBatchAdd').addEventListener('click', ()=> openBatchAdd());
+  $('#btnCancelBatchAdd').addEventListener('click', ()=> $('#batchAddMask').classList.remove('show'));
+  $$('#batchMode .opt').forEach(opt=>{
+    opt.addEventListener('click', ()=>{
+      $$('#batchMode .opt').forEach(o=>o.classList.remove('sel'));
+      opt.classList.add('sel');
+      if (opt.dataset.m === 'community'){
+        $('#batchCommunityOpts').style.display = '';
+        $('#batchNewbieOpts').style.display = 'none';
+        $('#batchModeHint').textContent = 'Simulated community members: each is scattered across rank bands to widen the community.';
+      } else {
+        $('#batchCommunityOpts').style.display = 'none';
+        $('#batchNewbieOpts').style.display = '';
+        $('#batchModeHint').textContent = 'Newcomers are aligned to the community median × 1.05, landing slightly above middle.';
+      }
+    });
+  });
+  $$('#batchProtect .opt').forEach(opt=>{
+    opt.addEventListener('click', ()=>{
+      $$('#batchProtect .opt').forEach(o=>o.classList.remove('sel'));
+      opt.classList.add('sel');
+    });
+  });
+  $('#btnConfirmBatchAdd').addEventListener('click', ()=>{
+    const count = parseInt($('#batchCount').value, 10);
+    if (!count || count < 1){ alert('Please enter a valid count'); return; }
+    if (count > 1000){ alert('Maximum 1000 at a time'); return; }
+    const modeOpt = $('#batchMode .opt.sel');
+    const mode = modeOpt ? modeOpt.dataset.m : 'community';
+    const names = generateNames(count);
+    if (mode === 'community'){
+      names.forEach(name=>{
+        const m = makeMember(name, 0.70, 0);
+        state.members.push(m);
+        m.rel = 0.30 + Math.random() * 0.62;
+        seedHistoryForMember(m);
+      });
+      logAdmin(`[Batch add] Added ${count} simulated community members (random spread).`, 'gold');
+      toast(`Added ${count} simulated community members`);
+    } else {
+      const protectOpt = $('#batchProtect .opt.sel');
+      const protectDays = protectOpt ? parseInt(protectOpt.dataset.d, 10) : 0;
+      const median = currentMedian();
+      const target = clamp(median * 1.05, 0.40, 0.90);
+      names.forEach(name=>{
+        const m = makeMember(name, 0.70, 0);
+        if (protectDays > 0){
+          m.protection.active = true;
+          m.protection.expiresAt = state.time.virtualNow + protectDays * DAY_MS;
+          m.protection.durationDays = protectDays;
+        }
+        state.members.push(m);
+        setTargetScore(m, target);
+      });
+      logAdmin(`[Batch add] Added ${count} newcomers${protectDays>0?` (protection ${protectDays} d)`:''}, ranking aligned to slightly above middle.`, 'gold');
+      toast(`Added ${count} newcomers`);
+    }
+    $('#batchAddMask').classList.remove('show');
+    const sel = $('#roleSelect'); if (sel) fillRoleSelect(sel, state.currentUser);
+    renderAll();
+  });
+}
+
+/* ========== Startup ========== */
+(function init(){
+  initSeed();
+  playSplash();
+  bindLogin(); bindRoleSwitch(); bindViewSwitch(); bindTabs(); bindAccept(); bindRate(); bindProfileCard(); bindReport();
+  bindUserScarcePublish(); bindDataPanel(); bindAutoTask(); bindAdminButtons(); bindDeleteRole(); bindTimeControls(); bindBatchAdd();
+  logAdmin('[System] SkillMesh started. Community has ' + state.members.length + ' members.', 'sys');
+  logAdmin(`[Templates] ${TASK_TEMPLATES_NORMAL.length} normal tasks, ${TASK_TEMPLATES_SQUAD.length} squad/partner templates.`, 'sys');
+  logAdmin('[Scarce/Squad] The publish dialog supports template selection that auto-fills title / slots / duration.', 'sys');
+  logAdmin('[Auto-generate] Admin can generate a normal task or a squad call for a specific member, with custom headcount.', 'sys');
+  logAdmin('[Initial spread] Each member gets seeded historical exchanges so ranking spreads naturally.', 'sys');
+  console.log('%c[SkillMesh] Loaded successfully ✅', 'color:#1E8449;font-weight:bold;');
+})();
+</script>
+</body>
+</html>
